@@ -1,0 +1,67 @@
+name: Publicar versão
+
+# Antes de rodar: suba a versão em app/package.json e app/src-tauri/tauri.conf.json.
+# Segredos necessários no repositório:
+#   TAURI_SIGNING_PRIVATE_KEY           -> conteúdo do arquivo updater.key
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD  -> senha da chave (vazio se gerada sem senha)
+
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: "Notas da versão (aparecem no update e no release)"
+        required: true
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache do Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+
+      - name: Instalar dependências do frontend
+        run: npm ci
+        working-directory: app
+
+      - name: Build, assinatura e publicação
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: app
+          tagName: v__VERSION__
+          releaseName: "Rz GameBooster v__VERSION__"
+          releaseBody: ${{ github.event.inputs.notes }}
+          releaseDraft: false
+          prerelease: false
+          includeUpdaterJson: true
+
+      - name: Anexar SHA256 e VirusTotal às notas
+        if: always()
+        continue-on-error: true
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ver = (Get-Content app/src-tauri/tauri.conf.json | ConvertFrom-Json).version
+          $tag = "v$ver"
+          $exe = Get-ChildItem -Recurse app/src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1
+          if ($exe) {
+            $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
+            $body = "${{ github.event.inputs.notes }}`n`n---`nSHA256 ($($exe.Name)): ``$hash```nVirusTotal: https://www.virustotal.com/gui/file/$hash"
+            gh release edit $tag --notes "$body"
+          }

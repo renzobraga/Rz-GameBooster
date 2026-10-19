@@ -1,6 +1,6 @@
 // Identidade do produto. Trocar o nome/tagline aqui atualiza o site inteiro.
 export const brand = {
-  name: "Redline",
+  name: "Rz GameBooster",
   // Promessa curta, da perspectiva de quem joga. Sem jargão.
   tagline: "Mais FPS no seu jogo. E você desfaz tudo quando quiser.",
   // Repositório e release (ajustar para o seu usuário/repo).

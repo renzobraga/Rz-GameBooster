@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0e1116;
+  --color-panel: #171b22;
+  --color-line: #262b34;
+  --color-ink: #f2f4f7;
+  --color-muted: #9aa4b2;
+  --color-good: #49d17a;
+  --color-amber: #f2b33d;
+  --color-bad: #e5574e;
+  --color-action: #5b8def;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  overflow: hidden;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-action) 35%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.001ms !important;
+  }
+}

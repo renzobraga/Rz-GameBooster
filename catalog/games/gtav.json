@@ -1,0 +1,18 @@
+{
+  "id": "gtav",
+  "name": "GTA V",
+  "store": "multi",
+  "steam_app_id": 271590,
+  "steam_common_dir": "Grand Theft Auto V",
+  "exe_relpath": "GTA5.exe",
+  "executable": "GTA5.exe",
+  "candidate_dirs": [
+    "%ProgramFiles%\\Rockstar Games\\Grand Theft Auto V",
+    "%ProgramFiles%\\Epic Games\\GTAV",
+    "%SystemDrive%\\Program Files\\Rockstar Games\\Grand Theft Auto V"
+  ],
+  "anticheat": "BattlEye",
+  "anticheat_level": "kernel",
+  "anticheat_notes": "GTA Online usa BattlEye (kernel). Ajustes de Windows são seguros. Nunca desativamos o anti-cheat nem tocamos no jogo. GTA Online é muito dependente de CPU em áreas movimentadas.",
+  "excluded_tweaks": []
+}

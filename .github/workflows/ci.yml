@@ -1,0 +1,35 @@
+name: CI
+
+# Valida que o frontend e o núcleo Rust compilam no Windows.
+
+on:
+  push:
+    branches: [main]
+    paths: ["app/**", "catalog/**", ".github/workflows/ci.yml"]
+  pull_request:
+    paths: ["app/**", "catalog/**", ".github/workflows/ci.yml"]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache do Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+
+      - name: Instalar dependências do frontend
+        run: npm ci
+        working-directory: app
+
+      - name: Compilar (frontend + Rust, sem empacotar)
+        run: npm run tauri build -- --no-bundle
+        working-directory: app

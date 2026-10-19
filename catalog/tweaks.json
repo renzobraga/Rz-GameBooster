@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "tweaks": [
+    {
+      "id": "power.high_performance",
+      "category": "energia",
+      "title": "Plano de energia de alto desempenho",
+      "description": "Troca o plano Equilibrado/Economia pelo Alto Desempenho, evitando que a CPU reduza a frequência durante o jogo.",
+      "risk": "safe",
+      "evidence": "proven",
+      "requires_reboot": false,
+      "laptop_warning": true,
+      "games": ["*"],
+      "presets": ["seguro", "competitivo", "pc_fraco", "avancado"],
+      "how_to_check": "Painel de Controle › Opções de Energia: o plano ativo é 'Alto desempenho'.",
+      "actions": [{ "type": "power_plan", "plan": "high_performance" }],
+      "i18n": {
+        "es": {
+          "title": "Plan de energía de alto rendimiento",
+          "description": "Cambia el plan Equilibrado/Ahorro por Alto rendimiento para que la CPU no baje de frecuencia mientras juegas.",
+          "how_to_check": "Panel de control › Opciones de energía: el plan activo es 'Alto rendimiento'."
+        },
+        "en": {
+          "title": "High performance power plan",
+          "description": "Switches Balanced/Power saver to High performance so the CPU does not throttle while gaming.",
+          "how_to_check": "Control Panel › Power Options: the active plan is 'High performance'."
+        }
+      }
+    },
+    {
+      "id": "power.disable_throttling",
+      "category": "energia",
+      "title": "Desativar Power Throttling",
+      "description": "Impede que o Windows reduza o desempenho de processos em segundo plano/primeiro plano para economizar energia.",
+      "risk": "moderate",
+      "evidence": "situational",
+      "requires_reboot": false,
+      "laptop_warning": true,
+      "games": ["*"],
+      "presets": ["competitivo", "avancado"],
+      "how_to_check": "Editor do Registro: HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling › PowerThrottlingOff = 1.",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling", "name": "PowerThrottlingOff", "value": 1 }
+      ],
+      "i18n": {
+        "es": {
+          "title": "Desactivar Power Throttling",
+          "description": "Evita que Windows reduzca el rendimiento de procesos para ahorrar energía.",
+          "how_to_check": "Registro: HKLM\\...\\Power\\PowerThrottling › PowerThrottlingOff = 1."
+        },
+        "en": {
+          "title": "Disable Power Throttling",
+          "description": "Stops Windows from lowering process performance to save power.",
+          "how_to_check": "Registry: HKLM\\...\\Power\\PowerThrottling › PowerThrottlingOff = 1."
+        }
+      }
+    },
+    {
+      "id": "gamedvr.disable",
+      "category": "graficos",
+      "title": "Desativar gravação em segundo plano (Game DVR)",
+      "description": "Desliga a captura automática em segundo plano do Xbox Game Bar. A gravação manual continua funcionando.",
+      "risk": "safe",
+      "evidence": "proven",
+      "requires_reboot": false,
+      "games": ["*"],
+      "presets": ["seguro", "competitivo", "pc_fraco", "avancado"],
+      "how_to_check": "Configurações › Jogos › Capturas: 'Gravar em segundo plano' está desligado.",
+      "actions": [
+        { "type": "registry", "hive": "HKCU", "path": "System\\GameConfigStore", "name": "GameDVR_Enabled", "value": 0 },
+        { "type": "registry", "hive": "HKCU", "path": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR", "name": "AppCaptureEnabled", "value": 0 }
+      ],
+      "i18n": {
+        "es": {
+          "title": "Desactivar grabación en segundo plano (Game DVR)",
+          "description": "Apaga la captura automática en segundo plano de Xbox Game Bar. La grabación manual sigue funcionando.",
+          "how_to_check": "Configuración › Juegos › Capturas: 'Grabar en segundo plano' está apagado."
+        },
+        "en": {
+          "title": "Disable background recording (Game DVR)",
+          "description": "Turns off Xbox Game Bar background capture. Manual recording still works.",
+          "how_to_check": "Settings › Gaming › Captures: 'Record in the background' is off."
+        }
+      }
+    },
+    {
+      "id": "graphics.hags",
+      "category": "graficos",
+      "title": "Agendamento de GPU acelerado por hardware (HAGS)",
+      "description": "Deixa a GPU gerenciar a própria memória. O ganho varia por máquina — meça antes e depois com um benchmark.",
+      "risk": "moderate",
+      "evidence": "situational",
+      "requires_reboot": true,
+      "games": ["*"],
+      "presets": ["avancado"],
+      "how_to_check": "Configurações › Sistema › Vídeo › Gráficos: a opção fica ligada após reiniciar.",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers", "name": "HwSchMode", "value": 2 }
+      ],
+      "i18n": {
+        "es": {
+          "title": "Programación de GPU acelerada por hardware (HAGS)",
+          "description": "Deja que la GPU gestione su memoria. La ganancia varía; mide antes y después.",
+          "how_to_check": "Configuración › Sistema › Pantalla › Gráficos: la opción queda activada tras reiniciar."
+        },
+        "en": {
+          "title": "Hardware-accelerated GPU scheduling (HAGS)",
+          "description": "Lets the GPU manage its own memory. Results vary per machine; benchmark before and after.",
+          "how_to_check": "Settings › System › Display › Graphics: the option is on after restarting."
+        }
+      }
+    },
+    {
+      "id": "graphics.gpu_preference",
+      "category": "graficos",
+      "title": "Forçar a GPU dedicada para o jogo",
+      "description": "Define a preferência de GPU de alto desempenho para o executável do jogo selecionado (útil em notebooks com GPU dupla).",
+      "risk": "safe",
+      "evidence": "proven",
+      "requires_reboot": false,
+      "games": ["*"],
+      "presets": ["seguro", "competitivo", "pc_fraco", "avancado"],
+      "how_to_check": "Configurações › Sistema › Vídeo › Gráficos: o jogo aparece com 'Alto desempenho'.",
+      "actions": [{ "type": "gpu_preference" }],
+      "i18n": {
+        "es": {
+          "title": "Forzar la GPU dedicada para el juego",
+          "description": "Fija la preferencia de GPU de alto rendimiento para el ejecutable del juego seleccionado.",
+          "how_to_check": "Configuración › Sistema › Pantalla › Gráficos: el juego aparece con 'Alto rendimiento'."
+        },
+        "en": {
+          "title": "Force the dedicated GPU for the game",
+          "description": "Sets the high-performance GPU preference for the selected game's executable.",
+          "how_to_check": "Settings › System › Display › Graphics: the game shows 'High performance'."
+        }
+      }
+    },
+    {
+      "id": "input.mouse_no_accel",
+      "category": "entrada",
+      "title": "Desativar aceleração do mouse",
+      "description": "Remove a 'precisão aprimorada do ponteiro' para um movimento 1:1, mais consistente para mira.",
+      "risk": "safe",
+      "evidence": "proven",
+      "requires_reboot": false,
+      "games": ["*"],
+      "presets": ["competitivo", "avancado"],
+      "how_to_check": "Configurações do mouse › 'Aprimorar precisão do ponteiro' está desmarcado.",
+      "actions": [
+        { "type": "registry", "hive": "HKCU", "path": "Control Panel\\Mouse", "name": "MouseSpeed", "value": "0" },
+        { "type": "registry", "hive": "HKCU", "path": "Control Panel\\Mouse", "name": "MouseThreshold1", "value": "0" },
+        { "type": "registry", "hive": "HKCU", "path": "Control Panel\\Mouse", "name": "MouseThreshold2", "value": "0" }
+      ],
+      "i18n": {
+        "es": {
+          "title": "Desactivar aceleración del ratón",
+          "description": "Quita la 'precisión mejorada del puntero' para un movimiento 1:1, más consistente para apuntar.",
+          "how_to_check": "Configuración del ratón › 'Mejorar precisión del puntero' está desmarcado."
+        },
+        "en": {
+          "title": "Disable mouse acceleration",
+          "description": "Removes 'enhance pointer precision' for 1:1 movement, more consistent for aiming.",
+          "how_to_check": "Mouse settings › 'Enhance pointer precision' is unchecked."
+        }
+      }
+    },
+    {
+      "id": "network.throttling_off",
+      "category": "rede",
+      "title": "Desativar Network Throttling",
+      "description": "Remove o limite de throughput de rede que o Windows aplica por padrão a tarefas multimídia.",
+      "risk": "moderate",
+      "evidence": "situational",
+      "requires_reboot": true,
+      "games": ["*"],
+      "presets": ["competitivo", "avancado"],
+      "how_to_check": "Registro: HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile › NetworkThrottlingIndex = 0xFFFFFFFF.",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile", "name": "NetworkThrottlingIndex", "value": 4294967295 }
+      ],
+      "i18n": {
+        "es": {
+          "title": "Desactivar Network Throttling",
+          "description": "Quita el límite de red que Windows aplica por defecto a tareas multimedia.",
+          "how_to_check": "Registro: ...\\Multimedia\\SystemProfile › NetworkThrottlingIndex = 0xFFFFFFFF."
+        },
+        "en": {
+          "title": "Disable Network Throttling",
+          "description": "Removes the default network throughput limit Windows applies for multimedia tasks.",
+          "how_to_check": "Registry: ...\\Multimedia\\SystemProfile › NetworkThrottlingIndex = 0xFFFFFFFF."
+        }
+      }
+    },
+    {
+      "id": "latency.system_responsiveness",
+      "category": "latencia",
+      "title": "Reduzir System Responsiveness",
+      "description": "Diminui a reserva de CPU que o Windows guarda para tarefas em segundo plano, priorizando o jogo.",
+      "risk": "moderate",
+      "evidence": "situational",
+      "requires_reboot": true,
+      "games": ["*"],
+      "presets": ["competitivo", "avancado"],
+      "how_to_check": "Registro: ...\\Multimedia\\SystemProfile › SystemResponsiveness = 0.",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile", "name": "SystemResponsiveness", "value": 0 }
+      ],
+      "i18n": {
+        "es": {
+          "title": "Reducir System Responsiveness",
+          "description": "Baja la reserva de CPU que Windows guarda para tareas en segundo plano, priorizando el juego.",
+          "how_to_check": "Registro: ...\\Multimedia\\SystemProfile › SystemResponsiveness = 0."
+        },
+        "en": {
+          "title": "Lower System Responsiveness",
+          "description": "Reduces the CPU reserve Windows keeps for background tasks, prioritizing the game.",
+          "how_to_check": "Registry: ...\\Multimedia\\SystemProfile › SystemResponsiveness = 0."
+        }
+      }
+    },
+    {
+      "id": "latency.games_priority",
+      "category": "latencia",
+      "title": "Prioridade do perfil de Jogos (MMCSS)",
+      "description": "Aumenta a prioridade de CPU/GPU da tarefa 'Games' do agendador multimídia do Windows.",
+      "risk": "moderate",
+      "evidence": "situational",
+      "requires_reboot": true,
+      "games": ["*"],
+      "presets": ["avancado"],
+      "how_to_check": "Registro: ...\\Multimedia\\SystemProfile\\Tasks\\Games › 'GPU Priority' = 8 e 'Priority' = 6.",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "name": "GPU Priority", "value": 8 },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "name": "Priority", "value": 6 },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "name": "Scheduling Category", "value": "High" },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "name": "SFIO Priority", "value": "High" }
+      ],
+      "i18n": {
+        "es": {
+          "title": "Prioridad del perfil de Juegos (MMCSS)",
+          "description": "Sube la prioridad de CPU/GPU de la tarea 'Games' del programador multimedia de Windows.",
+          "how_to_check": "Registro: ...\\SystemProfile\\Tasks\\Games › 'GPU Priority' = 8 y 'Priority' = 6."
+        },
+        "en": {
+          "title": "Games profile priority (MMCSS)",
+          "description": "Raises CPU/GPU priority of the Windows multimedia scheduler 'Games' task.",
+          "how_to_check": "Registry: ...\\SystemProfile\\Tasks\\Games › 'GPU Priority' = 8 and 'Priority' = 6."
+        }
+      }
+    },
+    {
+      "id": "visual.performance_mode",
+      "category": "segundo_plano",
+      "title": "Efeitos visuais para desempenho",
+      "description": "Reduz animações e sombras do Windows para liberar recursos. Recomendado em PCs mais fracos.",
+      "risk": "safe",
+      "evidence": "situational",
+      "requires_reboot": false,
+      "games": ["*"],
+      "presets": ["pc_fraco", "avancado"],
+      "how_to_check": "Desempenho do sistema › Efeitos visuais: 'Ajustar para melhor desempenho'.",
+      "actions": [
+        { "type": "registry", "hive": "HKCU", "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects", "name": "VisualFXSetting", "value": 2 }
+      ],
+      "i18n": {
+        "es": {
+          "title": "Efectos visuales para rendimiento",
+          "description": "Reduce animaciones y sombras de Windows para liberar recursos. Recomendado en PCs más débiles.",
+          "how_to_check": "Rendimiento del sistema › Efectos visuales: 'Ajustar para obtener el mejor rendimiento'."
+        },
+        "en": {
+          "title": "Visual effects for performance",
+          "description": "Reduces Windows animations and shadows to free resources. Recommended on weaker PCs.",
+          "how_to_check": "System performance › Visual effects: 'Adjust for best performance'."
+        }
+      }
+    }
+  ]
+}

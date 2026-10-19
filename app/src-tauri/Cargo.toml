@@ -1,0 +1,47 @@
+[package]
+name = "rz-gamebooster"
+version = "0.1.0"
+description = "Otimizador de Windows para jogos — gratuito, open source e reversível."
+authors = ["Rz GameBooster"]
+license = "GPL-3.0-or-later"
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+# rlib only: cdylib/staticlib quebram o cross-linking do MinGW.
+name = "rz_gamebooster_lib"
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.52"
+windows = { version = "0.58", features = [
+  "Win32_Foundation",
+  "Win32_System_Power",
+  "Win32_System_Registry",
+  "Win32_System_Memory",
+  "Win32_System_SystemInformation",
+  "Win32_Storage_FileSystem",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+] }
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-process = "2"
+tauri-plugin-updater = "2"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

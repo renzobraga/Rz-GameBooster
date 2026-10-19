@@ -12,30 +12,33 @@ export default function Home() {
 
   return (
     <div className="mx-auto max-w-5xl px-4">
-      <header className="flex items-center justify-between py-6">
+      <header className="flex items-center justify-between py-5 md:py-6">
         <span className="font-mono text-sm tracking-tight text-ink">{brand.name}</span>
-        <a href={brand.github} className="text-sm text-muted transition-colors hover:text-ink">
+        <a href={brand.github} className="flex h-10 items-center text-sm text-muted transition-colors hover:text-ink">
           GitHub
         </a>
       </header>
 
       <main>
-        <section className="grid items-center gap-10 pt-10 pb-20 md:grid-cols-2 md:pt-16">
+        <section className="grid items-center gap-8 pt-6 pb-16 md:grid-cols-2 md:gap-10 md:pt-16 md:pb-20">
           <div>
-            <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight md:text-5xl">
+            <h1 className="text-[2rem] font-semibold leading-[1.08] tracking-tight sm:text-4xl md:text-5xl">
               {brand.tagline}
             </h1>
-            <p className="mt-5 max-w-md text-muted">
+            <p className="mt-4 max-w-md text-[15px] text-muted md:mt-5 md:text-base">
               Otimizador de Windows para {brand.games.join(", ")}. Grátis e open source.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center md:mt-8">
               <a
                 href={download}
-                className="rounded-md bg-action px-5 py-3 font-medium text-bg transition-opacity hover:opacity-90"
+                className="flex h-12 w-full items-center justify-center rounded-md bg-action px-5 font-medium text-bg transition-opacity hover:opacity-90 sm:w-auto"
               >
                 Baixar para Windows
               </a>
-              <a href={brand.github} className="px-2 py-3 text-sm text-muted hover:text-ink">
+              <a
+                href={brand.github}
+                className="flex h-12 items-center justify-center text-sm text-muted hover:text-ink sm:justify-start sm:px-2"
+              >
                 Ver o código
               </a>
             </div>
@@ -44,13 +47,15 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="flex justify-center md:justify-end">
-            <Gauge score={82} />
+          <div className="order-first flex justify-center md:order-none md:justify-end">
+            <div className="w-full max-w-[280px] sm:max-w-[380px]">
+              <Gauge score={82} />
+            </div>
           </div>
         </section>
 
-        <section className="border-t border-line py-16">
-          <ol className="grid gap-10 md:grid-cols-3">
+        <section className="border-t border-line py-12 md:py-16">
+          <ol className="grid gap-8 md:grid-cols-3 md:gap-10">
             {steps.map((s) => (
               <li key={s.n} className="list-none">
                 <div className="font-mono text-sm text-action">{String(s.n).padStart(2, "0")}</div>

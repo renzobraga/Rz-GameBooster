@@ -1,10 +1,11 @@
 # Dependencies
 node_modules/
 
-# Next.js / web build output
+# Web / app build output
 .next/
 out/
 build/
+dist/
 .vercel/
 
 # Rust / Tauri build output

@@ -1,0 +1,16 @@
+{
+  "note": "Somente exibição e cópia. O app NUNCA aplica estas configs automaticamente. Cada entrada precisa de fonte e data de verificação.",
+  "game": "cs2",
+  "pros": [
+    {
+      "player": "Exemplo",
+      "team": null,
+      "sensitivity": null,
+      "dpi": null,
+      "resolution": null,
+      "launch_options": null,
+      "source": null,
+      "checked_at": null
+    }
+  ]
+}

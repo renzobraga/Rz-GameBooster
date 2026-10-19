@@ -1,0 +1,17 @@
+{
+  "id": "valorant",
+  "name": "Valorant",
+  "store": "riot",
+  "steam_app_id": null,
+  "steam_common_dir": null,
+  "exe_relpath": "ShooterGame\\Binaries\\Win64\\VALORANT-Win64-Shipping.exe",
+  "executable": "VALORANT-Win64-Shipping.exe",
+  "candidate_dirs": [
+    "%ProgramFiles%\\Riot Games\\VALORANT\\live",
+    "%SystemDrive%\\Riot Games\\VALORANT\\live"
+  ],
+  "anticheat": "Vanguard",
+  "anticheat_level": "kernel",
+  "anticheat_notes": "Vanguard roda no kernel e é o anti-cheat mais rígido desta lista. Por isso só aplicamos ajustes de Windows e NUNCA chegamos perto do processo, memória ou arquivos do jogo.",
+  "excluded_tweaks": []
+}

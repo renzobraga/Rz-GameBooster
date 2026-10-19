@@ -1,0 +1,14 @@
+{
+  "id": "cs2",
+  "name": "Counter-Strike 2",
+  "store": "steam",
+  "steam_app_id": 730,
+  "steam_common_dir": "Counter-Strike Global Offensive",
+  "exe_relpath": "game\\bin\\win64\\cs2.exe",
+  "executable": "cs2.exe",
+  "candidate_dirs": [],
+  "anticheat": "VAC",
+  "anticheat_level": "usermode",
+  "anticheat_notes": "O VAC é tolerante a ajustes de Windows. Nunca tocamos no processo, memória ou arquivos do jogo — apenas configurações do Windows.",
+  "excluded_tweaks": []
+}
