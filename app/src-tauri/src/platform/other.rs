@@ -10,6 +10,10 @@ pub fn high_perf_guid() -> String {
     "8C5E7FDA-E8BF-4A96-9A85-A6E23A8C635C".to_string()
 }
 
+pub fn balanced_guid() -> String {
+    "381B4222-F694-41F0-9685-FF5BB260DF2E".to_string()
+}
+
 pub fn reg_read(_hive: &str, _path: &str, _name: &str) -> Result<Option<RegValue>> {
     Ok(None)
 }

@@ -239,6 +239,16 @@ export async function revertAll(): Promise<BatchResult> {
   await sleep(MOCK_DELAY);
   return mockApply([...mockApplied], false);
 }
+export async function disableTweaks(gameId: string, ids: string[]): Promise<BatchResult> {
+  if (isTauri) return call("disable_tweaks", { gameId, ids });
+  await sleep(MOCK_DELAY);
+  return mockApply(ids, false);
+}
+export async function disableAll(gameId: string): Promise<BatchResult> {
+  if (isTauri) return call("disable_all", { gameId });
+  await sleep(MOCK_DELAY);
+  return mockApply([...mockApplied], false);
+}
 export async function history(): Promise<Journal> {
   return isTauri ? call("history") : { entries: [...mockJournal] };
 }

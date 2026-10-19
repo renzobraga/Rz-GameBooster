@@ -68,6 +68,16 @@ pub fn revert_all() -> Result<BatchResult, String> {
 }
 
 #[tauri::command]
+pub fn disable_tweaks(game_id: String, ids: Vec<String>) -> Result<BatchResult, String> {
+    engine::disable(&game_id, &ids).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn disable_all(game_id: String) -> Result<BatchResult, String> {
+    engine::disable_all(&game_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn history() -> Journal {
     engine::history()
 }

@@ -33,8 +33,8 @@ import {
   listGames,
   listTweaks,
   reboot,
-  revertAll,
-  revertTweaks,
+  disableTweaks,
+  disableAll,
   systemInfo,
   type BatchResult,
   type GameProfile,
@@ -45,7 +45,7 @@ import {
   type TweakView,
 } from "./lib/api";
 
-const APP_VERSION = "0.1.5";
+const APP_VERSION = "0.1.6";
 const SITE = "https://github.com/renzobraga/Rz-GameBooster";
 
 type Tab = "painel" | "diagnostico" | "otimizacoes" | "historico" | "sobre";
@@ -153,10 +153,10 @@ export default function App() {
   const rescan = () => run("diag", async () => {});
   const fixIssue = (fixId: string) => run(`fix:${fixId}`, () => applyTweaks(gameId, [fixId]));
   const applyOne = (id: string) => run(`apply:${id}`, () => applyTweaks(gameId, [id]));
-  const revertOne = (id: string) => run(`revert:${id}`, () => revertTweaks([id]));
-  const revertAllNow = () => run("revertAll", () => revertAll());
+  const disableOne = (id: string) => run(`disable:${id}`, () => disableTweaks(gameId, [id]));
+  const disableAllNow = () => run("disableAll", () => disableAll(gameId));
   const applyRecommended = () =>
-    run("recommended", () => applyTweaks(gameId, tweaks.filter((tw) => tw.recommended && tw.supported && !tw.managed).map((tw) => tw.id)));
+    run("recommended", () => applyTweaks(gameId, tweaks.filter((tw) => tw.recommended && tw.supported && tw.state !== "applied").map((tw) => tw.id)));
 
   const doReboot = async () => {
     setRebooting(true);
@@ -263,8 +263,8 @@ export default function App() {
         {tab === "diagnostico" && report && (
           <Diagnostico report={report} busy={busy} busyKey={busyKey} lastScan={lastScan} onFix={fixIssue} onRescan={rescan} />
         )}
-        {tab === "otimizacoes" && <Otimizacoes tweaks={tweaks} busy={busy} busyKey={busyKey} onApply={applyOne} onRevert={revertOne} onRecommended={applyRecommended} />}
-        {tab === "historico" && <Historico journal={journal} tweaks={tweaks} busy={busy} busyKey={busyKey} onRevert={revertOne} onRevertAll={revertAllNow} />}
+        {tab === "otimizacoes" && <Otimizacoes tweaks={tweaks} busy={busy} busyKey={busyKey} onApply={applyOne} onDisable={disableOne} onRecommended={applyRecommended} />}
+        {tab === "historico" && <Historico journal={journal} tweaks={tweaks} busy={busy} busyKey={busyKey} onDisable={disableOne} onDisableAll={disableAllNow} />}
         {tab === "sobre" && <Sobre game={game} update={update} />}
       </main>
 
@@ -492,14 +492,14 @@ function Otimizacoes({
   busy,
   busyKey,
   onApply,
-  onRevert,
+  onDisable,
   onRecommended,
 }: {
   tweaks: TweakView[];
   busy: boolean;
   busyKey: string | null;
   onApply: (id: string) => void;
-  onRevert: (id: string) => void;
+  onDisable: (id: string) => void;
   onRecommended: () => void;
 }) {
   const { t } = useT();
@@ -520,16 +520,12 @@ function Otimizacoes({
       <ul className="flex flex-col gap-2">
         {tweaks.map((tw) => {
           const applying = busyKey === `apply:${tw.id}`;
-          const reverting = busyKey === `revert:${tw.id}`;
+          const disabling = busyKey === `disable:${tw.id}`;
+          const on = tw.state === "applied";
           return (
             <li key={tw.id} className="flex items-start gap-3 rounded-lg border border-line bg-panel p-4">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium">{tw.title}</p>
-                  {!tw.managed && tw.state === "applied" && (
-                    <span className="rounded bg-good/15 px-2 py-0.5 text-[11px] text-good">{t.opt.detected}</span>
-                  )}
-                </div>
+                <p className="text-sm font-medium">{tw.title}</p>
                 <p className="mt-0.5 text-sm text-muted">{tw.description}</p>
                 <div className="mt-1.5">
                   <RiskBadge tw={tw} />
@@ -540,10 +536,10 @@ function Otimizacoes({
               <Toggle
                 size="large"
                 aria-label={tw.title}
-                checked={tw.managed}
-                busy={applying || reverting}
+                checked={on}
+                busy={applying || disabling}
                 disabled={busy || !tw.supported}
-                onChange={() => (tw.managed ? onRevert(tw.id) : onApply(tw.id))}
+                onChange={() => (on ? onDisable(tw.id) : onApply(tw.id))}
               />
             </li>
           );
@@ -558,19 +554,19 @@ function Historico({
   tweaks,
   busy,
   busyKey,
-  onRevert,
-  onRevertAll,
+  onDisable,
+  onDisableAll,
 }: {
   journal: Journal;
   tweaks: TweakView[];
   busy: boolean;
   busyKey: string | null;
-  onRevert: (id: string) => void;
-  onRevertAll: () => void;
+  onDisable: (id: string) => void;
+  onDisableAll: () => void;
 }) {
   const { t } = useT();
   const active = journal.entries.filter((e) => e.reverted_at === null);
-  const revertingAll = busyKey === "revertAll";
+  const revertingAll = busyKey === "disableAll";
   // Titulo no idioma atual quando o tweak existe na lista carregada.
   const titleFor = (tweakId: string, fallback: string) => tweaks.find((tw) => tw.id === tweakId)?.title ?? fallback;
   return (
@@ -579,7 +575,7 @@ function Historico({
         <p className="text-sm text-muted">{t.hist.count(journal.entries.length)}</p>
         {active.length > 0 && (
           <button
-            onClick={onRevertAll}
+            onClick={onDisableAll}
             disabled={busy}
             className="inline-flex items-center gap-1.5 rounded-md border border-line px-4 py-2 text-sm text-muted hover:text-ink disabled:opacity-50"
           >
@@ -593,7 +589,7 @@ function Historico({
       ) : (
         <ul className="flex flex-col gap-2">
           {[...journal.entries].reverse().map((e) => {
-            const reverting = busyKey === `revert:${e.tweak_id}`;
+            const reverting = busyKey === `disable:${e.tweak_id}`;
             return (
               <li key={e.id} className="flex items-center gap-3 rounded-lg border border-line bg-panel p-4">
                 <div className="min-w-0 flex-1">
@@ -605,7 +601,7 @@ function Historico({
                 </div>
                 {e.reverted_at === null && (
                   <button
-                    onClick={() => onRevert(e.tweak_id)}
+                    onClick={() => onDisable(e.tweak_id)}
                     disabled={busy}
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-xs text-muted hover:text-ink disabled:opacity-50"
                   >

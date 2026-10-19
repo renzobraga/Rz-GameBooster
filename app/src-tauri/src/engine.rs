@@ -360,6 +360,71 @@ pub fn revert_all() -> Result<BatchResult> {
     revert(&ids)
 }
 
+/// Estado "desligado" de uma ação: apaga o valor de registro (o Windows volta
+/// ao padrão) ou troca o plano de energia para Equilibrado. É o que o switch
+/// faz ao ser desligado, mesmo que o app não tenha sido quem ativou.
+fn disable_action(action: &Action, ctx: &Ctx) -> Result<()> {
+    match action {
+        Action::Registry { hive, path, name, .. } => platform::reg_delete(hive, path, name),
+        Action::PowerPlan { .. } => platform::power_set(&platform::balanced_guid()),
+        Action::GpuPreference => {
+            let exe = exe_str(ctx)?;
+            platform::reg_delete("HKCU", GPU_PREF_PATH, &exe)
+        }
+    }
+}
+
+pub fn disable(game_id: &str, ids: &[String]) -> Result<BatchResult> {
+    let _guard = LOCK.lock().unwrap();
+    let ctx = ctx_for(game_id)?;
+    let mut journal = journal::load();
+    let catalog = load_catalog();
+    let mut results = Vec::new();
+    let mut needs_reboot = false;
+
+    for id in ids {
+        let Some(tweak) = catalog.tweaks.iter().find(|t| &t.id == id) else {
+            results.push(OpResult { tweak_id: id.clone(), ok: false, skipped: false, message: "tweak desconhecido".into() });
+            continue;
+        };
+        if needs_exe(tweak) && ctx.exe.is_none() {
+            results.push(OpResult { tweak_id: id.clone(), ok: false, skipped: true, message: "jogo não encontrado".into() });
+            continue;
+        }
+
+        let mut error: Option<String> = None;
+        for action in &tweak.actions {
+            if let Err(e) = disable_action(action, &ctx) {
+                error = Some(e.to_string());
+                break;
+            }
+        }
+        if let Some(msg) = error {
+            results.push(OpResult { tweak_id: id.clone(), ok: false, skipped: false, message: msg });
+            continue;
+        }
+
+        // Fecha qualquer entrada ativa do diário (se o app tinha aplicado).
+        if let Some(e) = journal.active_mut(id) {
+            e.reverted_at = Some(journal::now_ms());
+        }
+        if tweak.requires_reboot {
+            needs_reboot = true;
+        }
+        results.push(OpResult { tweak_id: id.clone(), ok: true, skipped: false, message: "desativado".into() });
+    }
+
+    if let Err(e) = journal::save(&journal) {
+        results.push(OpResult { tweak_id: String::new(), ok: false, skipped: false, message: format!("falha ao salvar o histórico: {e}") });
+    }
+    Ok(BatchResult { results, needs_reboot })
+}
+
+pub fn disable_all(game_id: &str) -> Result<BatchResult> {
+    let ids = journal::load().active_ids();
+    disable(game_id, &ids)
+}
+
 pub fn history() -> Journal {
     journal::load()
 }

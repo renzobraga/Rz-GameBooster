@@ -23,6 +23,8 @@ pub fn run() {
             commands::apply_tweaks,
             commands::revert_tweaks,
             commands::revert_all,
+            commands::disable_tweaks,
+            commands::disable_all,
             commands::history,
             commands::is_elevated,
             commands::relaunch_as_admin,

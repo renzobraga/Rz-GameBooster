@@ -21,9 +21,15 @@ use crate::journal::RegValue;
 // GUIDs de planos de energia de desempenho.
 const HIGH_PERF: GUID = GUID::from_u128(0x8c5e7fda_e8bf_4a96_9a85_a6e23a8c635c);
 const ULTIMATE_PERF: GUID = GUID::from_u128(0xe9a42b02_d5df_448d_aa00_03f14749eb61);
+// Plano "Equilibrado": o estado "desligado" do ajuste de energia.
+const BALANCED: GUID = GUID::from_u128(0x381b4222_f694_41f0_9685_ff5bb260df2e);
 
 pub fn high_perf_guid() -> String {
     guid_to_string(&HIGH_PERF)
+}
+
+pub fn balanced_guid() -> String {
+    guid_to_string(&BALANCED)
 }
 
 fn wide(s: &str) -> Vec<u16> {
