@@ -1,88 +1,103 @@
-import { Gauge } from "@/components/Gauge";
-import { Logo } from "@/components/Logo";
-import { brand } from "@/lib/brand";
+"use client";
 
-const steps = [
-  { n: 1, t: "Diagnóstico", d: "Um raio-X do seu PC em segundos, com nota de 0 a 100." },
-  { n: 2, t: "Otimização", d: "Ajustes seguros do Windows aplicados com um clique." },
-  { n: 3, t: "Reversível", d: "Desfaça qualquer mudança pelo histórico, quando quiser." },
-];
+import Link from "next/link";
+import { ArrowRight, ShieldCheck } from "lucide-react";
+import { AppShowcase } from "@/components/AppShowcase";
+import { DiagnosticDemo } from "@/components/DiagnosticDemo";
+import { GamesStrip } from "@/components/GamesStrip";
+import { Reveal } from "@/components/Reveal";
+import { brand } from "@/lib/brand";
+import { useT } from "@/lib/i18n";
 
 export default function Home() {
-  const download = `${brand.github}/releases/latest`;
+  const t = useT();
 
   return (
-    <div className="mx-auto max-w-5xl px-4">
-      <header className="flex items-center justify-between py-5 md:py-6">
-        <Logo />
-        <a href={brand.github} className="flex h-10 items-center text-sm text-muted transition-colors hover:text-ink">
-          GitHub
-        </a>
-      </header>
+    <div className="mx-auto max-w-6xl px-4">
+      {/* Hero */}
+      <section className="pt-12 pb-10 text-center md:pt-20">
+        <h1 className="mx-auto max-w-3xl text-[2rem] font-semibold leading-[1.08] tracking-tight sm:text-4xl md:text-5xl">
+          {t.home.heroTitle}
+        </h1>
+        <p className="mx-auto mt-4 max-w-xl text-[15px] text-muted md:text-base">{t.home.heroSub}</p>
+        <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            href="/baixar"
+            className="flex h-12 w-full max-w-xs items-center justify-center rounded-md bg-action px-6 font-medium text-bg transition-opacity hover:opacity-90 sm:w-auto"
+          >
+            {t.cta.download}
+          </Link>
+          <a href={brand.github} className="flex h-12 items-center justify-center px-3 text-sm text-muted hover:text-ink">
+            {t.cta.viewCode}
+          </a>
+        </div>
+        <p className="mt-5 font-mono text-xs text-muted">{t.trustLine}</p>
+      </section>
 
-      <main>
-        <section className="grid items-center gap-8 pt-6 pb-16 md:grid-cols-2 md:gap-10 md:pt-16 md:pb-20">
+      {/* Demo interativa */}
+      <section className="pb-16">
+        <div className="mx-auto mb-6 max-w-2xl text-center">
+          <h2 className="text-2xl font-semibold tracking-tight">{t.home.demoTitle}</h2>
+          <p className="mt-2 text-sm text-muted">{t.home.demoSub}</p>
+        </div>
+        <DiagnosticDemo />
+      </section>
+
+      {/* Vitrine do app (prints reais) */}
+      <section className="border-t border-line py-16">
+        <Reveal>
+          <div className="mx-auto mb-8 max-w-2xl text-center">
+            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">{t.home.showcaseTitle}</h2>
+            <p className="mt-2 text-sm text-muted">{t.home.showcaseSub}</p>
+          </div>
+          <AppShowcase />
+        </Reveal>
+      </section>
+
+      {/* Jogos */}
+      <section className="border-t border-line py-16">
+        <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-[2rem] font-semibold leading-[1.08] tracking-tight sm:text-4xl md:text-5xl">
-              {brand.tagline}
-            </h1>
-            <p className="mt-4 max-w-md text-[15px] text-muted md:mt-5 md:text-base">
-              Otimizador de Windows para {brand.games.join(", ")}. Grátis e open source.
-            </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center md:mt-8">
-              <a
-                href={download}
-                className="flex h-12 w-full items-center justify-center rounded-md bg-action px-5 font-medium text-bg transition-opacity hover:opacity-90 sm:w-auto"
-              >
-                Baixar para Windows
-              </a>
-              <a
-                href={brand.github}
-                className="flex h-12 items-center justify-center text-sm text-muted hover:text-ink sm:justify-start sm:px-2"
-              >
-                Ver o código
-              </a>
-            </div>
-            <p className="mt-5 font-mono text-xs text-muted">
-              Reversível · Não injeta no jogo · SHA256 verificável
-            </p>
+            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">{t.home.gamesTitle}</h2>
+            <p className="mt-2 text-sm text-muted">{t.home.gamesSub}</p>
           </div>
+          <Link href="/jogos" className="hidden shrink-0 items-center gap-1 text-sm text-action hover:underline sm:flex">
+            {t.nav.games} <ArrowRight size={15} />
+          </Link>
+        </div>
+        <Reveal>
+          <GamesStrip />
+        </Reveal>
+      </section>
 
-          <div className="order-first flex justify-center md:order-none md:justify-end">
-            <div className="w-full max-w-[280px] sm:max-w-[380px]">
-              <Gauge score={82} />
-            </div>
-          </div>
-        </section>
-
-        <section className="border-t border-line py-12 md:py-16">
-          <ol className="grid gap-8 md:grid-cols-3 md:gap-10">
-            {steps.map((s) => (
-              <li key={s.n} className="list-none">
-                <div className="font-mono text-sm text-action">{String(s.n).padStart(2, "0")}</div>
-                <h2 className="mt-2 text-lg font-medium">{s.t}</h2>
-                <p className="mt-1 text-sm leading-relaxed text-muted">{s.d}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="flex flex-wrap items-baseline gap-x-6 gap-y-2 border-t border-line py-10">
-          <span className="text-sm text-muted">Jogos suportados</span>
-          {brand.games.map((g) => (
-            <span key={g} className="font-mono text-sm text-ink">
-              {g}
-            </span>
+      {/* Passos */}
+      <section className="border-t border-line py-16">
+        <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">{t.home.stepsTitle}</h2>
+        <ol className="mt-8 grid gap-8 md:grid-cols-3 md:gap-10">
+          {t.steps.map((s, i) => (
+            <li key={i} className="list-none">
+              <div className="font-mono text-sm text-action">{String(i + 1).padStart(2, "0")}</div>
+              <h3 className="mt-2 text-lg font-medium">{s.t}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-muted">{s.d}</p>
+            </li>
           ))}
-        </section>
-      </main>
+        </ol>
+      </section>
 
-      <footer className="flex flex-col gap-2 border-t border-line py-10 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
-        <span>
-          {brand.name} · {brand.license} · não afiliado à Valve, Rockstar ou Riot
-        </span>
-        <span className="font-mono">Cada release traz hash SHA256 e link VirusTotal</span>
-      </footer>
+      {/* Segurança */}
+      <section className="border-t border-line py-16">
+        <div className="rounded-2xl border border-line bg-panel p-8 md:p-12">
+          <div className="flex items-center gap-2 text-good">
+            <ShieldCheck size={20} />
+            <span className="font-mono text-xs uppercase tracking-wider">{t.footer.security}</span>
+          </div>
+          <h2 className="mt-3 max-w-2xl text-2xl font-semibold tracking-tight md:text-3xl">{t.home.safetyTitle}</h2>
+          <p className="mt-3 max-w-2xl text-muted">{t.home.safetySub}</p>
+          <Link href="/seguranca" className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-action hover:underline">
+            {t.home.safetyCta} <ArrowRight size={15} />
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
