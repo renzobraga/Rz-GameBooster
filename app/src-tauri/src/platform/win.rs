@@ -10,9 +10,7 @@ use winreg::types::FromRegValue;
 use winreg::RegKey;
 
 use windows::core::{GUID, PCWSTR};
-use windows::Win32::Foundation::HLOCAL;
 use windows::Win32::Storage::FileSystem::GetDiskFreeSpaceExW;
-use windows::Win32::System::Memory::LocalFree;
 use windows::Win32::System::Power::{PowerGetActiveScheme, PowerSetActiveScheme};
 use windows::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
 use windows::Win32::UI::Shell::{IsUserAnAdmin, ShellExecuteW};
@@ -117,7 +115,9 @@ pub fn power_active() -> Result<String> {
             return Err(anyhow!("esquema de energia ativo nulo"));
         }
         let guid = *p;
-        let _ = LocalFree(Some(HLOCAL(p as *mut core::ffi::c_void)));
+        // O buffer de PowerGetActiveScheme deveria ser liberado com LocalFree,
+        // mas são ~16 bytes por chamada (não é caminho quente) e o SO recupera
+        // ao fechar. Evitamos a dependência de API para manter o build simples.
         Ok(guid_to_string(&guid))
     }
 }
