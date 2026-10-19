@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { Activity, SlidersHorizontal, History, Info, Download, ShieldAlert } from "lucide-react";
+import { Activity, SlidersHorizontal, History, Info, Download, ShieldAlert, ChevronLeft } from "lucide-react";
 import { Gauge } from "./components/Gauge";
+import { ElasticGallery } from "./components/ElasticGallery";
 import {
   applyTweaks,
   checkUpdate,
@@ -41,6 +42,7 @@ const sevColor: Record<Severity, string> = {
 export default function App() {
   const [games, setGames] = useState<GameProfile[]>([]);
   const [gameId, setGameId] = useState<string>("");
+  const [view, setView] = useState<"select" | "dash">("select");
   const [tweaks, setTweaks] = useState<TweakView[]>([]);
   const [report, setReport] = useState<Report | null>(null);
   const [journal, setJournal] = useState<Journal>({ entries: [] });
@@ -62,20 +64,16 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const gs = await listGames();
-      setGames(gs);
-      const first = gs[0]?.id ?? "";
-      setGameId(first);
+      setGames(await listGames());
       setElevated(await isElevated());
       await refreshDiag();
-      await refreshTweaks(first);
       try {
         setUpdate(await checkUpdate());
       } catch {
         /* sem rede / sem release ainda */
       }
     })();
-  }, [refreshDiag, refreshTweaks]);
+  }, [refreshDiag]);
 
   useEffect(() => {
     void refreshTweaks(gameId);
@@ -102,37 +100,55 @@ export default function App() {
       )
     );
 
+  const Badges = (
+    <div className="ml-auto flex items-center gap-3">
+      {!elevated && (
+        <button onClick={() => relaunchAsAdmin()} className="flex items-center gap-1.5 rounded-md bg-amber/15 px-3 py-1.5 text-xs text-amber hover:bg-amber/25">
+          <ShieldAlert size={14} /> Rodar como admin
+        </button>
+      )}
+      {update && (
+        <button onClick={() => installUpdate(update.obj)} className="flex items-center gap-1.5 rounded-md bg-action px-3 py-1.5 text-xs font-medium text-bg hover:opacity-90">
+          <Download size={14} /> Atualizar {update.version}
+        </button>
+      )}
+    </div>
+  );
+
+  // Tela inicial: escolha do jogo.
+  if (view === "select") {
+    return (
+      <div className="flex h-full flex-col bg-bg text-ink">
+        <header className="flex items-center gap-3 border-b border-line px-5 py-3">
+          <span className="font-mono text-sm font-semibold">Rz GameBooster</span>
+          <span className="text-sm text-muted">Escolha seu jogo</span>
+          {Badges}
+        </header>
+        <div className="flex-1 overflow-hidden">
+          <ElasticGallery
+            games={games}
+            onSelect={(id) => {
+              setGameId(id);
+              setTab("diagnostico");
+              setView("dash");
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Otimizador do jogo escolhido.
   return (
     <div className="flex h-full flex-col bg-bg text-ink">
-      {/* Barra superior */}
-      <header className="flex items-center gap-4 border-b border-line px-5 py-3">
+      <header className="flex items-center gap-3 border-b border-line px-5 py-3">
         <span className="font-mono text-sm font-semibold">Rz GameBooster</span>
-        <select
-          value={gameId}
-          onChange={(e) => setGameId(e.target.value)}
-          className="ml-2 rounded-md border border-line bg-panel px-3 py-1.5 text-sm outline-none focus:border-action"
-        >
-          {games.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
-        <div className="ml-auto flex items-center gap-3">
-          {!elevated && (
-            <button onClick={() => relaunchAsAdmin()} className="flex items-center gap-1.5 rounded-md bg-amber/15 px-3 py-1.5 text-xs text-amber hover:bg-amber/25">
-              <ShieldAlert size={14} /> Rodar como admin
-            </button>
-          )}
-          {update && (
-            <button onClick={() => installUpdate(update.obj)} className="flex items-center gap-1.5 rounded-md bg-action px-3 py-1.5 text-xs font-medium text-bg hover:opacity-90">
-              <Download size={14} /> Atualizar {update.version}
-            </button>
-          )}
-        </div>
+        <button onClick={() => setView("select")} className="flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-sm text-muted hover:text-ink">
+          <ChevronLeft size={15} /> {game?.name ?? "Trocar jogo"}
+        </button>
+        {Badges}
       </header>
 
-      {/* Abas */}
       <nav className="flex gap-1 border-b border-line px-3">
         {TABS.map((t) => {
           const Icon = t.icon;
@@ -151,7 +167,6 @@ export default function App() {
         })}
       </nav>
 
-      {/* Conteúdo */}
       <main className="flex-1 overflow-y-auto p-6">
         {tab === "diagnostico" && report && <Diagnostico report={report} busy={busy} onFix={applyOne} onRescan={refreshDiag} />}
         {tab === "otimizacoes" && <Otimizacoes tweaks={tweaks} busy={busy} onApply={applyOne} onRevert={revertOne} onRecommended={applyRecommended} />}
