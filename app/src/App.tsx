@@ -22,7 +22,7 @@ import {
 } from "./lib/api";
 
 const APP_VERSION = "0.1.1";
-const SITE = "https://github.com/renzobraga/cs-boost";
+const SITE = "https://github.com/renzobraga/Rz-GameBooster";
 
 type Tab = "diagnostico" | "otimizacoes" | "historico" | "sobre";
 const TABS: { id: Tab; label: string; icon: typeof Activity }[] = [

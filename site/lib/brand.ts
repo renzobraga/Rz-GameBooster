@@ -4,8 +4,8 @@ export const brand = {
   // Promessa curta, da perspectiva de quem joga. Sem jargão.
   tagline: "Mais FPS no seu jogo. E você desfaz tudo quando quiser.",
   // Repositório e release (ajustar para o seu usuário/repo).
-  github: "https://github.com/renzobraga/cs-boost",
-  releasesApi: "https://api.github.com/repos/renzobraga/cs-boost/releases/latest",
+  github: "https://github.com/renzobraga/Rz-GameBooster",
+  releasesApi: "https://api.github.com/repos/renzobraga/Rz-GameBooster/releases/latest",
   // Jogos suportados hoje (vira o perfil de jogo no app).
   games: ["Counter-Strike 2", "GTA V", "Valorant"] as const,
   license: "GPL-3.0",

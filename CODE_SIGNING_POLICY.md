@@ -6,7 +6,7 @@ binaries are code-signed with a certificate donated by the
 
 ## Project
 
-- **Repository:** https://github.com/renzobraga/cs-boost (public)
+- **Repository:** https://github.com/renzobraga/Rz-GameBooster (public)
 - **License:** GPL-3.0-or-later (OSI-approved), no proprietary components
 - **Artifact signed:** the Windows NSIS installer
   `Rz GameBooster_<version>_x64-setup.exe`
