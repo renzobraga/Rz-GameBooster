@@ -21,6 +21,7 @@ import { Gauge } from "./components/Gauge";
 import { ElasticGallery } from "./components/ElasticGallery";
 import { Logo } from "./components/Logo";
 import { LangToggle, useT } from "./lib/i18n";
+import { Toggle } from "./components/ui/toggle";
 import { estimateFps } from "./lib/fps";
 import {
   applyTweaks,
@@ -548,25 +549,19 @@ function Otimizacoes({
                 {tw.fit_note && <p className="mt-1 text-[11px] italic text-muted">{tw.fit_note}</p>}
                 {!tw.supported && tw.unsupported_reason && <p className="mt-1 text-[11px] text-amber">{tw.unsupported_reason}</p>}
               </div>
-              {tw.state === "applied" || tw.managed ? (
-                <button
-                  onClick={() => onRevert(tw.id)}
-                  disabled={busy}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-xs text-muted hover:text-ink disabled:opacity-50"
-                >
-                  {reverting && <Loader2 size={13} className="animate-spin" />}
-                  {reverting ? t.opt.reverting : t.opt.revert}
-                </button>
-              ) : (
-                <button
-                  onClick={() => onApply(tw.id)}
-                  disabled={busy || !tw.supported}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-action px-3 py-1.5 text-xs font-medium text-bg hover:opacity-90 disabled:opacity-50"
-                >
-                  {applying && <Loader2 size={13} className="animate-spin" />}
-                  {applying ? t.opt.applying : t.opt.apply}
-                </button>
-              )}
+              {(() => {
+                const on = tw.state === "applied" || tw.managed;
+                return (
+                  <Toggle
+                    size="large"
+                    aria-label={tw.title}
+                    checked={on}
+                    busy={applying || reverting}
+                    disabled={busy || !tw.supported}
+                    onChange={() => (on ? onRevert(tw.id) : onApply(tw.id))}
+                  />
+                );
+              })()}
             </li>
           );
         })}
