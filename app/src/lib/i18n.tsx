@@ -21,7 +21,7 @@ interface Dict {
   };
   diag: { subtitle: string; rescan: string; scanning: string; lastScan: string; allGood: string; fix: string; fixing: string };
   pc: { title: string; cpu: string; gpu: string; ram: string; storage: string; free: string; unknown: string };
-  opt: { count: (n: number) => string; applyRec: string; applying: string; apply: string; revert: string; reverting: string };
+  opt: { count: (n: number) => string; applyRec: string; applying: string; apply: string; revert: string; reverting: string; detected: string };
   state: { applied: string; not_applied: string; partial: string; unknown: string };
   risk: { safe: string; moderate: string; proven: string; situational: string; weak: string; reboot: string };
   cat: Record<string, string>;
@@ -64,7 +64,7 @@ const PT: Dict = {
     fixing: "Corrigindo…",
   },
   pc: { title: "Seu PC", cpu: "Processador", gpu: "Placa de vídeo", ram: "Memória", storage: "Armazenamento", free: "livres", unknown: "não identificado" },
-  opt: { count: (n) => `${n} ajustes disponíveis`, applyRec: "Aplicar recomendados", applying: "Aplicando…", apply: "Aplicar", revert: "Reverter", reverting: "Revertendo…" },
+  opt: { count: (n) => `${n} ajustes disponíveis`, applyRec: "Aplicar recomendados", applying: "Aplicando…", apply: "Aplicar", revert: "Reverter", reverting: "Revertendo…", detected: "já ativo" },
   state: { applied: "Aplicado", not_applied: "Inativo", partial: "Parcial", unknown: "—" },
   risk: { safe: "seguro", moderate: "moderado", proven: "comprovado", situational: "situacional", weak: "fraco", reboot: "requer reinício" },
   cat: { energia: "energia", graficos: "gráficos", entrada: "entrada", rede: "rede", latencia: "latência", segundo_plano: "segundo plano" },
@@ -128,7 +128,7 @@ const EN: Dict = {
     fixing: "Fixing…",
   },
   pc: { title: "Your PC", cpu: "Processor", gpu: "Graphics card", ram: "Memory", storage: "Storage", free: "free", unknown: "unknown" },
-  opt: { count: (n) => `${n} tweaks available`, applyRec: "Apply recommended", applying: "Applying…", apply: "Apply", revert: "Revert", reverting: "Reverting…" },
+  opt: { count: (n) => `${n} tweaks available`, applyRec: "Apply recommended", applying: "Applying…", apply: "Apply", revert: "Revert", reverting: "Reverting…", detected: "already on" },
   state: { applied: "Applied", not_applied: "Inactive", partial: "Partial", unknown: "—" },
   risk: { safe: "safe", moderate: "moderate", proven: "proven", situational: "situational", weak: "weak", reboot: "needs restart" },
   cat: { energia: "power", graficos: "graphics", entrada: "input", rede: "network", latencia: "latency", segundo_plano: "background" },

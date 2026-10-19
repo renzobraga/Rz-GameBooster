@@ -45,7 +45,7 @@ import {
   type TweakView,
 } from "./lib/api";
 
-const APP_VERSION = "0.1.4";
+const APP_VERSION = "0.1.5";
 const SITE = "https://github.com/renzobraga/Rz-GameBooster";
 
 type Tab = "painel" | "diagnostico" | "otimizacoes" | "historico" | "sobre";
@@ -130,15 +130,16 @@ export default function App() {
 
   // Executor unico: trava contra spam (uma acao por vez), da feedback (toast)
   // e abre o pop-up de reinicio quando a acao exige reiniciar o Windows.
+  // Sem toast de sucesso: o próprio switch/estado é o retorno visual.
+  // Só o pop-up de reinício (quando a ação exige) e toast de erro.
   const run = useCallback(
-    async (key: string, fn: () => Promise<unknown>, okMsg: string) => {
+    async (key: string, fn: () => Promise<unknown>) => {
       if (busyKey) return;
       setBusyKey(key);
       try {
         const res = await fn();
         await refreshDiag();
         await refreshTweaks(gameId);
-        pushToast("success", okMsg);
         if (isBatch(res) && res.needs_reboot) setRebootOpen(true);
       } catch (e) {
         pushToast("error", e instanceof Error ? e.message : String(e));
@@ -149,17 +150,13 @@ export default function App() {
     [busyKey, gameId, refreshDiag, refreshTweaks, pushToast]
   );
 
-  const rescan = () => run("diag", async () => {}, t.toast.scan);
-  const fixIssue = (fixId: string) => run(`fix:${fixId}`, () => applyTweaks(gameId, [fixId]), t.toast.fix);
-  const applyOne = (id: string) => run(`apply:${id}`, () => applyTweaks(gameId, [id]), t.toast.apply);
-  const revertOne = (id: string) => run(`revert:${id}`, () => revertTweaks([id]), t.toast.revert);
-  const revertAllNow = () => run("revertAll", () => revertAll(), t.toast.revertAll);
+  const rescan = () => run("diag", async () => {});
+  const fixIssue = (fixId: string) => run(`fix:${fixId}`, () => applyTweaks(gameId, [fixId]));
+  const applyOne = (id: string) => run(`apply:${id}`, () => applyTweaks(gameId, [id]));
+  const revertOne = (id: string) => run(`revert:${id}`, () => revertTweaks([id]));
+  const revertAllNow = () => run("revertAll", () => revertAll());
   const applyRecommended = () =>
-    run(
-      "recommended",
-      () => applyTweaks(gameId, tweaks.filter((tw) => tw.recommended && tw.supported && tw.state !== "applied").map((tw) => tw.id)),
-      t.toast.rec
-    );
+    run("recommended", () => applyTweaks(gameId, tweaks.filter((tw) => tw.recommended && tw.supported && !tw.managed).map((tw) => tw.id)));
 
   const doReboot = async () => {
     setRebooting(true);
@@ -490,17 +487,6 @@ function RiskBadge({ tw }: { tw: TweakView }) {
   );
 }
 
-function StatePill({ state }: { state: TweakView["state"] }) {
-  const { t } = useT();
-  const map = {
-    applied: { c: "bg-good/15 text-good", l: t.state.applied },
-    not_applied: { c: "bg-line text-muted", l: t.state.not_applied },
-    partial: { c: "bg-amber/15 text-amber", l: t.state.partial },
-    unknown: { c: "bg-line text-muted", l: t.state.unknown },
-  }[state];
-  return <span className={`rounded px-2 py-0.5 text-[11px] ${map.c}`}>{map.l}</span>;
-}
-
 function Otimizacoes({
   tweaks,
   busy,
@@ -540,7 +526,9 @@ function Otimizacoes({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-medium">{tw.title}</p>
-                  <StatePill state={tw.state} />
+                  {!tw.managed && tw.state === "applied" && (
+                    <span className="rounded bg-good/15 px-2 py-0.5 text-[11px] text-good">{t.opt.detected}</span>
+                  )}
                 </div>
                 <p className="mt-0.5 text-sm text-muted">{tw.description}</p>
                 <div className="mt-1.5">
@@ -549,19 +537,14 @@ function Otimizacoes({
                 {tw.fit_note && <p className="mt-1 text-[11px] italic text-muted">{tw.fit_note}</p>}
                 {!tw.supported && tw.unsupported_reason && <p className="mt-1 text-[11px] text-amber">{tw.unsupported_reason}</p>}
               </div>
-              {(() => {
-                const on = tw.state === "applied" || tw.managed;
-                return (
-                  <Toggle
-                    size="large"
-                    aria-label={tw.title}
-                    checked={on}
-                    busy={applying || reverting}
-                    disabled={busy || !tw.supported}
-                    onChange={() => (on ? onRevert(tw.id) : onApply(tw.id))}
-                  />
-                );
-              })()}
+              <Toggle
+                size="large"
+                aria-label={tw.title}
+                checked={tw.managed}
+                busy={applying || reverting}
+                disabled={busy || !tw.supported}
+                onChange={() => (tw.managed ? onRevert(tw.id) : onApply(tw.id))}
+              />
             </li>
           );
         })}
