@@ -10,9 +10,9 @@ const GENRE: Record<string, string> = {
 };
 
 const POSTER: Record<string, string> = {
-  cs2: "/games/cs2.png",
-  gtav: "/games/gtav.png",
-  valorant: "/games/valorant.png",
+  cs2: "/games/cs2.jpg",
+  gtav: "/games/gtav.jpg",
+  valorant: "/games/valorant.jpg",
 };
 
 /** Tela inicial do app: escolha do jogo em galeria sanfona. */

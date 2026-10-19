@@ -1,17 +1,23 @@
-import { brand } from "@/lib/brand";
-
-/** Marca do produto: glifo do medidor + wordmark. */
+/** Logo da marca: emblema "Rz" (com arco de velocímetro) + "GameBooster". */
 export function Logo() {
   return (
-    <span className="flex items-center gap-2">
-      <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
-        <rect width="32" height="32" rx="7" fill="#171b22" />
-        <path d="M 6 20 A 10 10 0 0 1 26 20" fill="none" stroke="#262b34" strokeWidth="3.2" strokeLinecap="round" />
-        <path d="M 6 20 A 10 10 0 0 1 23 13" fill="none" stroke="#49d17a" strokeWidth="3.2" strokeLinecap="round" />
-        <circle cx="16" cy="20" r="2.4" fill="#f2f4f7" />
-        <rect x="14.8" y="9" width="2.4" height="11" rx="1.2" fill="#f2f4f7" transform="rotate(34 16 20)" />
-      </svg>
-      <span className="font-mono text-sm font-semibold tracking-tight text-ink">{brand.name}</span>
+    <span className="flex items-center gap-2.5 select-none">
+      {/* Emblema Rz — o "objeto" */}
+      <span className="relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-line bg-gradient-to-br from-panel to-bg">
+        <span className="font-display -translate-y-[1px] text-[15px] font-extrabold italic leading-none tracking-tight text-ink">
+          Rz
+        </span>
+        <svg className="absolute bottom-[4px] left-1/2 -translate-x-1/2" width="22" height="9" viewBox="0 0 22 9" aria-hidden="true">
+          <path d="M2 8 A 14 14 0 0 0 20 8" fill="none" stroke="#49d17a" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+        <span className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-inset ring-good/15" />
+      </span>
+
+      {/* Wordmark */}
+      <span className="font-display text-[18px] font-bold leading-none tracking-tight">
+        <span className="text-ink">Game</span>
+        <span className="text-good">Booster</span>
+      </span>
     </span>
   );
 }
