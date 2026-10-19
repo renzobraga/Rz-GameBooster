@@ -14,11 +14,14 @@ import {
   MonitorPlay,
   MemoryStick,
   HardDrive,
+  LayoutDashboard,
+  Gauge as GaugeIcon,
 } from "lucide-react";
 import { Gauge } from "./components/Gauge";
 import { ElasticGallery } from "./components/ElasticGallery";
 import { Logo } from "./components/Logo";
 import { LangToggle, useT } from "./lib/i18n";
+import { estimateFps } from "./lib/fps";
 import {
   applyTweaks,
   checkUpdate,
@@ -44,8 +47,9 @@ import {
 const APP_VERSION = "0.1.1";
 const SITE = "https://github.com/renzobraga/Rz-GameBooster";
 
-type Tab = "diagnostico" | "otimizacoes" | "historico" | "sobre";
+type Tab = "painel" | "diagnostico" | "otimizacoes" | "historico" | "sobre";
 const TAB_ORDER: { id: Tab; icon: typeof Activity }[] = [
+  { id: "painel", icon: LayoutDashboard },
   { id: "diagnostico", icon: Activity },
   { id: "otimizacoes", icon: SlidersHorizontal },
   { id: "historico", icon: History },
@@ -204,7 +208,7 @@ export default function App() {
             games={games}
             onSelect={(id) => {
               setGameId(id);
-              setTab("diagnostico");
+              setTab("painel");
               setView("dash");
             }}
           />
@@ -232,7 +236,16 @@ export default function App() {
         {TAB_ORDER.map((tb) => {
           const Icon = tb.icon;
           const active = tab === tb.id;
-          const label = tb.id === "diagnostico" ? t.tabs.diag : tb.id === "otimizacoes" ? t.tabs.opt : tb.id === "historico" ? t.tabs.hist : t.tabs.about;
+          const label =
+            tb.id === "painel"
+              ? t.tabs.panel
+              : tb.id === "diagnostico"
+              ? t.tabs.diag
+              : tb.id === "otimizacoes"
+              ? t.tabs.opt
+              : tb.id === "historico"
+              ? t.tabs.hist
+              : t.tabs.about;
           return (
             <button
               key={tb.id}
@@ -248,8 +261,9 @@ export default function App() {
       </nav>
 
       <main className="flex-1 overflow-y-auto p-6">
+        {tab === "painel" && <Painel sys={sys} game={game} />}
         {tab === "diagnostico" && report && (
-          <Diagnostico report={report} sys={sys} busy={busy} busyKey={busyKey} lastScan={lastScan} onFix={fixIssue} onRescan={rescan} />
+          <Diagnostico report={report} busy={busy} busyKey={busyKey} lastScan={lastScan} onFix={fixIssue} onRescan={rescan} />
         )}
         {tab === "otimizacoes" && <Otimizacoes tweaks={tweaks} busy={busy} busyKey={busyKey} onApply={applyOne} onRevert={revertOne} onRecommended={applyRecommended} />}
         {tab === "historico" && <Historico journal={journal} tweaks={tweaks} busy={busy} busyKey={busyKey} onRevert={revertOne} onRevertAll={revertAllNow} />}
@@ -310,9 +324,9 @@ function RebootModal({ open, busy, onReboot, onLater }: { open: boolean; busy: b
   );
 }
 
-/* ---------- Seção: configurações do PC ---------- */
+/* ---------- Aba Painel: specs do PC + FPS estimado ---------- */
 
-function PcSpecs({ sys }: { sys: SystemInfo | null }) {
+function Painel({ sys, game }: { sys: SystemInfo | null; game: GameProfile | undefined }) {
   const { t } = useT();
   const gb = (n: number | null | undefined) => (n != null ? `${n.toFixed(0)} GB` : t.pc.unknown);
   const storage =
@@ -325,24 +339,52 @@ function PcSpecs({ sys }: { sys: SystemInfo | null }) {
     { icon: MemoryStick, label: t.pc.ram, value: gb(sys?.ram_gb) },
     { icon: HardDrive, label: t.pc.storage, value: storage },
   ];
+
+  const est = game ? estimateFps(sys, game.id) : null;
+  const tierColor =
+    est?.tier === "elite" || est?.tier === "high"
+      ? "text-good"
+      : est?.tier === "smooth" || est?.tier === "playable"
+      ? "text-action"
+      : "text-amber";
+
   return (
-    <div className="mb-6 rounded-xl border border-line bg-panel p-4">
-      <p className="mb-3 font-mono text-[11px] uppercase tracking-wider text-muted">{t.pc.title}</p>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+    <div className="mx-auto max-w-3xl">
+      {/* Cada peça num bullet próprio; o nome pode quebrar para a linha de baixo. */}
+      <ul className="flex flex-col gap-2">
         {items.map((it) => {
           const Icon = it.icon;
           return (
-            <div key={it.label} className="flex items-start gap-2">
-              <Icon size={16} className="mt-0.5 shrink-0 text-action" />
-              <div className="min-w-0">
-                <p className="text-[11px] text-muted">{it.label}</p>
-                <p className="truncate text-sm font-medium" title={it.value}>
-                  {it.value}
-                </p>
+            <li key={it.label} className="flex items-start gap-3 rounded-lg border border-line bg-panel p-4">
+              <Icon size={18} className="mt-0.5 shrink-0 text-action" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] uppercase tracking-wider text-muted">{it.label}</p>
+                <p className="text-sm font-medium leading-snug [overflow-wrap:anywhere]">{it.value}</p>
               </div>
-            </div>
+            </li>
           );
         })}
+      </ul>
+
+      {/* FPS estimado a partir das configs, logo abaixo das specs. */}
+      <div className="mt-6 rounded-xl border border-line bg-panel p-5">
+        <div className="flex items-center gap-2">
+          <GaugeIcon size={16} className="text-action" />
+          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">{t.fps.title}</p>
+        </div>
+        {est && est.fps != null ? (
+          <>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="font-display text-5xl font-extrabold leading-none text-ink">{est.fps}</span>
+              <span className="text-sm text-muted">{t.fps.unit}</span>
+              <span className={`ml-2 text-sm font-medium ${tierColor}`}>{t.fps.tiers[est.tier]}</span>
+            </div>
+            {game && <p className="mt-2 text-sm text-muted">{t.fps.sub(game.name)}</p>}
+            <p className="mt-1 text-[11px] text-muted">{t.fps.note}</p>
+          </>
+        ) : (
+          <p className="mt-2 text-sm text-muted">{t.fps.gpuUnknown}</p>
+        )}
       </div>
     </div>
   );
@@ -352,7 +394,6 @@ function PcSpecs({ sys }: { sys: SystemInfo | null }) {
 
 function Diagnostico({
   report,
-  sys,
   busy,
   busyKey,
   lastScan,
@@ -360,7 +401,6 @@ function Diagnostico({
   onRescan,
 }: {
   report: Report;
-  sys: SystemInfo | null;
   busy: boolean;
   busyKey: string | null;
   lastScan: number | null;
@@ -371,8 +411,6 @@ function Diagnostico({
   const scanning = busyKey === "diag";
   return (
     <div className="mx-auto max-w-3xl">
-      <PcSpecs sys={sys} />
-
       <div className="flex flex-col items-center gap-2 pb-6">
         <div className={scanning ? "animate-pulse" : ""}>
           <Gauge score={report.score} size={240} />

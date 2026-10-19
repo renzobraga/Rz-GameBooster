@@ -10,7 +10,15 @@ interface Dict {
   chooseGame: string;
   changeGame: string;
   update: (v: string) => string;
-  tabs: { diag: string; opt: string; hist: string; about: string };
+  tabs: { panel: string; diag: string; opt: string; hist: string; about: string };
+  fps: {
+    title: string;
+    unit: string;
+    sub: (game: string) => string;
+    note: string;
+    gpuUnknown: string;
+    tiers: { elite: string; high: string; smooth: string; playable: string; limited: string; low: string };
+  };
   diag: { subtitle: string; rescan: string; scanning: string; lastScan: string; allGood: string; fix: string; fixing: string };
   pc: { title: string; cpu: string; gpu: string; ram: string; storage: string; free: string; unknown: string };
   opt: { count: (n: number) => string; applyRec: string; applying: string; apply: string; revert: string; reverting: string };
@@ -30,7 +38,22 @@ const PT: Dict = {
   chooseGame: "Escolha seu jogo",
   changeGame: "Trocar jogo",
   update: (v) => `Atualizar ${v}`,
-  tabs: { diag: "Diagnóstico", opt: "Otimizações", hist: "Histórico", about: "Sobre" },
+  tabs: { panel: "Painel", diag: "Diagnóstico", opt: "Otimizações", hist: "Histórico", about: "Sobre" },
+  fps: {
+    title: "FPS estimado",
+    unit: "FPS",
+    sub: (game) => `Estimativa em 1080p para ${game}, a partir do seu hardware.`,
+    note: "Estimativa aproximada. O resultado real varia com a resolução, os gráficos no jogo e os drivers.",
+    gpuUnknown: "Não deu para identificar a placa de vídeo, então não dá para estimar o FPS.",
+    tiers: {
+      elite: "Competitivo, alto refresh",
+      high: "Muito fluido",
+      smooth: "Fluido",
+      playable: "Jogável",
+      limited: "Limitado",
+      low: "Abaixo do ideal",
+    },
+  },
   diag: {
     subtitle: "Nota do seu PC para jogos",
     rescan: "Analisar novamente",
@@ -79,7 +102,22 @@ const EN: Dict = {
   chooseGame: "Choose your game",
   changeGame: "Change game",
   update: (v) => `Update ${v}`,
-  tabs: { diag: "Diagnostics", opt: "Optimizations", hist: "History", about: "About" },
+  tabs: { panel: "Dashboard", diag: "Diagnostics", opt: "Optimizations", hist: "History", about: "About" },
+  fps: {
+    title: "Estimated FPS",
+    unit: "FPS",
+    sub: (game) => `Estimate at 1080p for ${game}, based on your hardware.`,
+    note: "Rough estimate. Real results vary with resolution, in-game graphics and drivers.",
+    gpuUnknown: "Could not identify the graphics card, so FPS can't be estimated.",
+    tiers: {
+      elite: "Competitive, high refresh",
+      high: "Very smooth",
+      smooth: "Smooth",
+      playable: "Playable",
+      limited: "Limited",
+      low: "Below ideal",
+    },
+  },
   diag: {
     subtitle: "Your PC's gaming score",
     rescan: "Scan again",
