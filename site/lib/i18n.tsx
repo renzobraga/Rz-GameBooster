@@ -125,6 +125,11 @@ export const dict = {
       },
       faq: {
         title: "Perguntas frequentes",
+        sub: "Respostas rápidas do time. Não resolveu? Fala com a gente.",
+        talk: "Falar com uma pessoa",
+        replies: "Resposta em minutos",
+        whatsapp: "Chamar no WhatsApp",
+        orCall: "ou ligue",
         items: [
           { q: "Vou tomar ban?", a: "Não mexemos no processo, memória ou arquivos do jogo — só em configurações do Windows. Esse é o tipo de ajuste que anti-cheats toleram." },
           { q: "É vírus?", a: "Não. O aviso do Windows (SmartScreen) aparece por ser um app novo sem assinatura. Cada release tem hash SHA256 e link do VirusTotal." },
@@ -236,6 +241,11 @@ export const dict = {
       },
       faq: {
         title: "Frequently asked questions",
+        sub: "Quick answers from the team. Still stuck? Talk to us.",
+        talk: "Talk to a human",
+        replies: "Replies in minutes",
+        whatsapp: "Message on WhatsApp",
+        orCall: "or call",
         items: [
           { q: "Will I get banned?", a: "We don't touch the game's process, memory or files — only Windows settings. That's the kind of tweak anti-cheats tolerate." },
           { q: "Is it a virus?", a: "No. The Windows (SmartScreen) warning shows because it's a new, unsigned app. Every release has a SHA256 hash and VirusTotal link." },

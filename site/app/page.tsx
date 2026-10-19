@@ -5,7 +5,7 @@ import { ArrowRight, ArrowUpRight, Check, FileSearch } from "lucide-react";
 import { AppShowcase } from "@/components/AppShowcase";
 import { DiagnosticDemo } from "@/components/DiagnosticDemo";
 import { GamesStrip } from "@/components/GamesStrip";
-import { Faq } from "@/components/Faq";
+import { FaqSection } from "@/components/FaqSection";
 import { Reveal } from "@/components/Reveal";
 import { brand } from "@/lib/brand";
 import { useT } from "@/lib/i18n";
@@ -122,8 +122,7 @@ export default function Home() {
 
       {/* FAQ na home */}
       <section className="border-t border-line py-16">
-        <SectionHead kicker="05 — dúvidas" title={t.pages.faq.title} href="/faq" hrefLabel="FAQ" />
-        <Faq limit={5} />
+        <FaqSection limit={5} />
       </section>
 
       {/* CTA final — alinhado à esquerda */}
