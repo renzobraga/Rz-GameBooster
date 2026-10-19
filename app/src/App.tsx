@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Activity, SlidersHorizontal, History, Info, Download, ShieldAlert, ChevronLeft } from "lucide-react";
 import { Gauge } from "./components/Gauge";
 import { ElasticGallery } from "./components/ElasticGallery";
+import { Logo } from "./components/Logo";
 import {
   applyTweaks,
   checkUpdate,
@@ -120,7 +121,7 @@ export default function App() {
     return (
       <div className="flex h-full flex-col bg-bg text-ink">
         <header className="flex items-center gap-3 border-b border-line px-5 py-3">
-          <span className="font-mono text-sm font-semibold">Rz GameBooster</span>
+          <Logo />
           <span className="text-sm text-muted">Escolha seu jogo</span>
           {Badges}
         </header>
@@ -142,7 +143,7 @@ export default function App() {
   return (
     <div className="flex h-full flex-col bg-bg text-ink">
       <header className="flex items-center gap-3 border-b border-line px-5 py-3">
-        <span className="font-mono text-sm font-semibold">Rz GameBooster</span>
+        <Logo />
         <button onClick={() => setView("select")} className="flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-sm text-muted hover:text-ink">
           <ChevronLeft size={15} /> {game?.name ?? "Trocar jogo"}
         </button>
