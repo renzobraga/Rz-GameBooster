@@ -14,6 +14,7 @@ const GPU_TABLE: { re: RegExp; score: number }[] = [
   { re: /\b(rtx\s*)?4070\b/, score: 250 },
   { re: /\b(rtx\s*)?4060\s*ti\b/, score: 185 },
   { re: /\b(rtx\s*)?4060\b/, score: 150 },
+  { re: /\b(rtx\s*)?4050\b/, score: 128 },
   // NVIDIA RTX 30
   { re: /\b(rtx\s*)?3090\b/, score: 320 },
   { re: /\b(rtx\s*)?3080\b/, score: 290 },

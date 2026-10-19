@@ -44,7 +44,7 @@ import {
   type TweakView,
 } from "./lib/api";
 
-const APP_VERSION = "0.1.2";
+const APP_VERSION = "0.1.3";
 const SITE = "https://github.com/renzobraga/Rz-GameBooster";
 
 type Tab = "painel" | "diagnostico" | "otimizacoes" | "historico" | "sobre";
@@ -350,21 +350,21 @@ function Painel({ sys, game }: { sys: SystemInfo | null; game: GameProfile | und
 
   return (
     <div className="mx-auto max-w-3xl">
-      {/* Cada peça num bullet próprio; o nome pode quebrar para a linha de baixo. */}
-      <ul className="flex flex-col gap-2">
+      {/* Specs lado a lado (grade); o nome pode quebrar para a linha de baixo. */}
+      <div className="grid grid-cols-2 gap-3">
         {items.map((it) => {
           const Icon = it.icon;
           return (
-            <li key={it.label} className="flex items-start gap-3 rounded-lg border border-line bg-panel p-4">
+            <div key={it.label} className="flex items-start gap-3 rounded-lg border border-line bg-panel p-4">
               <Icon size={18} className="mt-0.5 shrink-0 text-action" />
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] uppercase tracking-wider text-muted">{it.label}</p>
                 <p className="text-sm font-medium leading-snug [overflow-wrap:anywhere]">{it.value}</p>
               </div>
-            </li>
+            </div>
           );
         })}
-      </ul>
+      </div>
 
       {/* FPS estimado a partir das configs, logo abaixo das specs. */}
       <div className="mt-6 rounded-xl border border-line bg-panel p-5">

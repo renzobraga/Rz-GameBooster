@@ -227,13 +227,54 @@ pub fn cpu_name() -> Option<String> {
     reg_sz("HKLM", "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "ProcessorNameString")
 }
 
+/// Prioridade de placa: dedicada ganha da integrada. Em notebook (Optimus/
+/// Switchable) a Intel costuma estar em 0000 e a NVIDIA/AMD dedicada em 0001.
+fn gpu_rank(name: &str) -> u8 {
+    let n = name.to_lowercase();
+    if n.contains("nvidia") || n.contains("geforce") || n.contains("rtx") || n.contains("gtx") || n.contains("quadro") {
+        3
+    } else if n.contains("radeon rx") || n.contains("radeon pro") || (n.contains("radeon") && n.contains(" rx ")) {
+        2
+    } else if n.contains("arc") {
+        2 // Intel Arc dedicada
+    } else {
+        0 // Intel integrada e afins
+    }
+}
+
+fn is_real_gpu(name: &str) -> bool {
+    let n = name.to_lowercase();
+    !name.trim().is_empty()
+        && !n.contains("microsoft basic display")
+        && !n.contains("microsoft remote display")
+        && !n.contains("remote desktop")
+}
+
 pub fn gpu_name() -> Option<String> {
-    // Placa primaria: primeira classe de display (0000).
-    reg_sz(
-        "HKLM",
-        "SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000",
-        "DriverDesc",
-    )
+    // Enumera todas as placas de video (0000, 0001, ...) e escolhe a dedicada.
+    let root = RegKey::predef(HKEY_LOCAL_MACHINE);
+    let class = root
+        .open_subkey("SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}")
+        .ok()?;
+
+    let mut best: Option<(u8, String)> = None;
+    for sub in class.enum_keys().flatten() {
+        // So subchaves de adaptador: 0000, 0001, ...
+        if sub.len() != 4 || !sub.chars().all(|c| c.is_ascii_digit()) {
+            continue;
+        }
+        let Ok(key) = class.open_subkey(&sub) else { continue };
+        let Ok(desc) = key.get_value::<String, _>("DriverDesc") else { continue };
+        let desc = desc.trim().to_string();
+        if !is_real_gpu(&desc) {
+            continue;
+        }
+        let rank = gpu_rank(&desc);
+        if best.as_ref().map_or(true, |(r, _)| rank > *r) {
+            best = Some((rank, desc));
+        }
+    }
+    best.map(|(_, name)| name)
 }
 
 pub fn os_name() -> Option<String> {
