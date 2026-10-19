@@ -1,4 +1,5 @@
-import { Gauge } from "@/components/Gauge";
+import { ElasticGallery } from "@/components/ui/elastic-gallery";
+import { Logo } from "@/components/Logo";
 import { brand } from "@/lib/brand";
 
 const steps = [
@@ -11,46 +12,37 @@ export default function Home() {
   const download = `${brand.github}/releases/latest`;
 
   return (
-    <div className="mx-auto max-w-5xl px-4">
+    <div className="mx-auto max-w-6xl px-4">
       <header className="flex items-center justify-between py-5 md:py-6">
-        <span className="font-mono text-sm tracking-tight text-ink">{brand.name}</span>
+        <Logo />
         <a href={brand.github} className="flex h-10 items-center text-sm text-muted transition-colors hover:text-ink">
           GitHub
         </a>
       </header>
 
       <main>
-        <section className="grid items-center gap-8 pt-6 pb-16 md:grid-cols-2 md:gap-10 md:pt-16 md:pb-20">
-          <div>
-            <h1 className="text-[2rem] font-semibold leading-[1.08] tracking-tight sm:text-4xl md:text-5xl">
+        <section className="pt-4 pb-14 md:pt-8 md:pb-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <h1 className="text-[1.9rem] font-semibold leading-[1.1] tracking-tight sm:text-4xl md:text-5xl">
               {brand.tagline}
             </h1>
-            <p className="mt-4 max-w-md text-[15px] text-muted md:mt-5 md:text-base">
-              Otimizador de Windows para {brand.games.join(", ")}. Grátis e open source.
-            </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center md:mt-8">
-              <a
-                href={download}
-                className="flex h-12 w-full items-center justify-center rounded-md bg-action px-5 font-medium text-bg transition-opacity hover:opacity-90 sm:w-auto"
-              >
-                Baixar para Windows
-              </a>
-              <a
-                href={brand.github}
-                className="flex h-12 items-center justify-center text-sm text-muted hover:text-ink sm:justify-start sm:px-2"
-              >
-                Ver o código
-              </a>
-            </div>
-            <p className="mt-5 font-mono text-xs text-muted">
-              Reversível · Não injeta no jogo · SHA256 verificável
+            <p className="mx-auto mt-4 max-w-lg text-[15px] text-muted md:text-base">
+              Otimizador de Windows para seus jogos. Grátis e open source.
             </p>
           </div>
 
-          <div className="order-first flex justify-center md:order-none md:justify-end">
-            <div className="w-full max-w-[280px] sm:max-w-[380px]">
-              <Gauge score={82} />
-            </div>
+          <div className="mt-8 md:mt-12">
+            <ElasticGallery />
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <a
+              href={download}
+              className="flex h-12 w-full max-w-xs items-center justify-center rounded-md bg-action px-6 font-medium text-bg transition-opacity hover:opacity-90 sm:w-auto"
+            >
+              Baixar para Windows
+            </a>
+            <p className="font-mono text-xs text-muted">Reversível · Não injeta no jogo · SHA256 verificável</p>
           </div>
         </section>
 
@@ -64,15 +56,6 @@ export default function Home() {
               </li>
             ))}
           </ol>
-        </section>
-
-        <section className="flex flex-wrap items-baseline gap-x-6 gap-y-2 border-t border-line py-10">
-          <span className="text-sm text-muted">Jogos suportados</span>
-          {brand.games.map((g) => (
-            <span key={g} className="font-mono text-sm text-ink">
-              {g}
-            </span>
-          ))}
         </section>
       </main>
 
