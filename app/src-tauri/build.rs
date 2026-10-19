@@ -44,6 +44,59 @@ fn main() {
         }
         panic!("VAC GUARD: compilação bloqueada ({} problema(s)).", problems.len());
     }
+    build_tauri();
+}
+
+// Manifesto Windows: no release o app exige administrador (UAC ao abrir);
+// no dev roda como o usuário (sem pedir admin a cada `tauri dev`).
+const APP_MANIFEST: &str = r#"<?xml version="1.0" encoding="utf-8"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel level="__LEVEL__" uiAccess="false" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity type="win32" name="Microsoft.Windows.Common-Controls" version="6.0.0.0" processorArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*" />
+    </dependentAssembly>
+  </dependency>
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/pm</dpiAware>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+      <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
+    </windowsSettings>
+  </application>
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/>
+      <supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/>
+      <supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}"/>
+      <supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}"/>
+      <supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}"/>
+    </application>
+  </compatibility>
+</assembly>
+"#;
+
+#[cfg(windows)]
+fn build_tauri() {
+    let level = if std::env::var("PROFILE").as_deref() == Ok("release") {
+        "requireAdministrator"
+    } else {
+        "asInvoker"
+    };
+    let manifest = APP_MANIFEST.replace("__LEVEL__", level);
+    let attrs = tauri_build::Attributes::new()
+        .windows_attributes(tauri_build::WindowsAttributes::new().app_manifest(manifest));
+    tauri_build::try_build(attrs).expect("erro ao executar tauri-build");
+}
+
+#[cfg(not(windows))]
+fn build_tauri() {
     tauri_build::build();
 }
 

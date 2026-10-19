@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Activity, SlidersHorizontal, History, Info, Download, ShieldAlert, ChevronLeft } from "lucide-react";
+import { Activity, SlidersHorizontal, History, Info, Download, ChevronLeft } from "lucide-react";
 import { Gauge } from "./components/Gauge";
 import { ElasticGallery } from "./components/ElasticGallery";
 import { Logo } from "./components/Logo";
@@ -9,11 +9,9 @@ import {
   diagnose,
   history,
   installUpdate,
-  isElevated,
   isTauri,
   listGames,
   listTweaks,
-  relaunchAsAdmin,
   revertAll,
   revertTweaks,
   type GameProfile,
@@ -23,7 +21,7 @@ import {
   type TweakView,
 } from "./lib/api";
 
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "0.1.1";
 const SITE = "https://github.com/renzobraga/cs-boost";
 
 type Tab = "diagnostico" | "otimizacoes" | "historico" | "sobre";
@@ -49,7 +47,6 @@ export default function App() {
   const [journal, setJournal] = useState<Journal>({ entries: [] });
   const [tab, setTab] = useState<Tab>("diagnostico");
   const [busy, setBusy] = useState(false);
-  const [elevated, setElevated] = useState(true);
   const [update, setUpdate] = useState<{ version: string; notes?: string; obj: unknown } | null>(null);
 
   const game = games.find((g) => g.id === gameId);
@@ -66,7 +63,6 @@ export default function App() {
   useEffect(() => {
     (async () => {
       setGames(await listGames());
-      setElevated(await isElevated());
       await refreshDiag();
       try {
         setUpdate(await checkUpdate());
@@ -103,11 +99,6 @@ export default function App() {
 
   const Badges = (
     <div className="ml-auto flex items-center gap-3">
-      {!elevated && (
-        <button onClick={() => relaunchAsAdmin()} className="flex items-center gap-1.5 rounded-md bg-amber/15 px-3 py-1.5 text-xs text-amber hover:bg-amber/25">
-          <ShieldAlert size={14} /> Rodar como admin
-        </button>
-      )}
       {update && (
         <button onClick={() => installUpdate(update.obj)} className="flex items-center gap-1.5 rounded-md bg-action px-3 py-1.5 text-xs font-medium text-bg hover:opacity-90">
           <Download size={14} /> Atualizar {update.version}
