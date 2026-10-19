@@ -43,11 +43,11 @@ export default function Home() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href="/baixar"
-              className="flex h-12 items-center justify-center rounded-md bg-action px-6 font-medium text-bg transition-opacity hover:opacity-90"
+              className="btn-glass-primary flex h-12 items-center justify-center rounded-md px-6 font-medium"
             >
               {t.cta.download}
             </Link>
-            <a href={brand.github} className="flex h-12 items-center justify-center rounded-md border border-line px-5 text-sm text-muted hover:text-ink">
+            <a href={brand.github} className="btn-glass flex h-12 items-center justify-center rounded-md px-5 text-sm">
               {t.cta.viewCode}
             </a>
           </div>
@@ -134,7 +134,7 @@ export default function Home() {
           </div>
           <Link
             href="/baixar"
-            className="flex shrink-0 items-center gap-2 self-start rounded-md bg-action px-7 py-3.5 font-semibold text-bg transition-opacity hover:opacity-90 md:self-auto"
+            className="btn-glass-primary flex shrink-0 items-center gap-2 self-start rounded-md px-7 py-3.5 font-semibold md:self-auto"
           >
             {t.cta.download} <ArrowUpRight size={18} />
           </Link>

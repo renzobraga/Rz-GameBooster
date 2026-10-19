@@ -9,8 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-action text-bg hover:opacity-90",
-        outline: "border border-line bg-transparent text-ink hover:bg-panel",
+        default: "btn-glass-primary",
+        outline: "btn-glass",
         secondary: "bg-panel text-ink hover:bg-line",
         ghost: "text-ink hover:bg-panel",
         link: "text-action underline-offset-4 hover:underline",

@@ -1,13 +1,11 @@
 "use client";
 
-import { ArrowRight, Clock, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, Clock, MessageCircle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 
-const PHONE_DISPLAY = "(22) 99292-0897";
 const WHATSAPP = "https://wa.me/5522992920897";
-const TEL = "tel:+5522992920897";
 
 export function FaqSection({ limit }: { limit?: number }) {
   const t = useT();
@@ -43,13 +41,6 @@ export function FaqSection({ limit }: { limit?: number }) {
               <ArrowRight />
             </a>
           </Button>
-          <p className="text-center text-[11px] text-muted">
-            <Phone className="mr-1 inline size-3" />
-            {faq.orCall}{" "}
-            <a href={TEL} className="font-medium text-ink underline-offset-4 hover:underline">
-              {PHONE_DISPLAY}
-            </a>
-          </p>
         </div>
       </div>
 

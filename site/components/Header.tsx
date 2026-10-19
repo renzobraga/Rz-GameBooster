@@ -57,7 +57,7 @@ export function Header() {
           <LangToggle />
           <Link
             href="/baixar"
-            className="hidden h-9 items-center rounded-md bg-action px-4 text-sm font-medium text-bg transition-opacity hover:opacity-90 sm:flex"
+            className="btn-glass-primary hidden h-9 items-center rounded-md px-4 text-sm font-medium sm:flex"
           >
             {t.nav.download}
           </Link>
@@ -75,7 +75,7 @@ export function Header() {
                 {l.label}
               </Link>
             ))}
-            <Link href="/baixar" onClick={() => setOpen(false)} className="mt-2 flex h-11 items-center justify-center rounded-md bg-action text-sm font-medium text-bg">
+            <Link href="/baixar" onClick={() => setOpen(false)} className="btn-glass-primary mt-2 flex h-11 items-center justify-center rounded-md text-sm font-medium">
               {t.nav.download}
             </Link>
             <a href={brand.github} className="py-3 text-sm text-muted">

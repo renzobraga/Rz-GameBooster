@@ -13,56 +13,69 @@ export function DiagnosticDemo() {
   const issues = t.demo.issues;
   const [fixed, setFixed] = useState<boolean[]>([false, false, false]);
 
-  const score = BASE + fixed.filter(Boolean).length * STEP;
-  const allFixed = fixed.every(Boolean);
+  const fixedCount = fixed.filter(Boolean).length;
+  const score = BASE + fixedCount * STEP;
+  const allFixed = fixedCount === issues.length;
 
   const fix = (i: number) => setFixed((f) => f.map((v, idx) => (idx === i ? true : v)));
 
   return (
-    <div className="grid items-center gap-8 rounded-2xl border border-line bg-panel p-6 md:grid-cols-[auto_1fr] md:p-8">
-      <div className="flex flex-col items-center">
-        <div className="w-[220px]">
+    <div className="rounded-2xl border border-line bg-panel p-5 md:p-6">
+      {/* Cabeçalho: medidor + rótulo */}
+      <div className="flex items-center gap-5">
+        <div className="w-[136px] shrink-0">
           <Gauge score={score} />
         </div>
-        <p className="-mt-2 text-sm text-muted">{t.demo.scoreLabel}</p>
+        <div>
+          <p className="text-sm font-medium text-ink">{t.demo.scoreLabel}</p>
+          <p className="mt-0.5 font-mono text-xs text-muted">
+            {allFixed ? (
+              <span className="text-good">{t.demo.fixed}</span>
+            ) : (
+              `${issues.length - fixedCount}/${issues.length}`
+            )}
+          </p>
+        </div>
       </div>
 
-      <div>
-        <ul className="flex flex-col gap-2">
-          {issues.map((issue, i) => (
-            <li key={i} className="flex items-center gap-3 rounded-lg border border-line bg-bg p-3">
-              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${fixed[i] ? "bg-good/15 text-good" : "bg-amber/15 text-amber"}`}>
-                {fixed[i] ? <Check size={14} /> : <span className="h-1.5 w-1.5 rounded-full bg-amber" />}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className={`text-sm font-medium ${fixed[i] ? "text-muted line-through" : "text-ink"}`}>{issue.t}</p>
-                <p className="text-xs text-muted">{issue.d}</p>
-              </div>
-              {!fixed[i] && (
-                <button onClick={() => fix(i)} className="shrink-0 rounded-md bg-action px-3 py-1.5 text-xs font-medium text-bg hover:opacity-90">
-                  {t.demo.fixAll.split(" ")[0]}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-4 flex items-center gap-2">
-          {!allFixed ? (
-            <button onClick={() => setFixed([true, true, true])} className="flex items-center gap-2 rounded-md bg-action px-4 py-2 text-sm font-medium text-bg hover:opacity-90">
-              <Wrench size={15} /> {t.demo.fixAll}
-            </button>
-          ) : (
-            <span className="flex items-center gap-2 rounded-md bg-good/15 px-4 py-2 text-sm font-medium text-good">
-              <Check size={15} /> {t.demo.fixed}
+      {/* Lista de problemas */}
+      <ul className="mt-5 flex flex-col gap-2">
+        {issues.map((issue, i) => (
+          <li
+            key={i}
+            className={`flex items-center gap-3 rounded-lg border border-line bg-bg px-3 py-2.5 transition-opacity ${fixed[i] ? "opacity-55" : ""}`}
+          >
+            <span
+              className={`flex size-6 shrink-0 items-center justify-center rounded-full ${fixed[i] ? "bg-good/15 text-good" : "bg-amber/15"}`}
+            >
+              {fixed[i] ? <Check size={14} /> : <span className="size-1.5 rounded-full bg-amber" />}
             </span>
-          )}
-          {fixed.some(Boolean) && (
-            <button onClick={() => setFixed([false, false, false])} className="flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm text-muted hover:text-ink">
-              <RotateCcw size={14} /> {t.home.demoReset}
-            </button>
-          )}
-        </div>
+            <span className="min-w-0 flex-1 truncate text-sm text-ink">{issue.t}</span>
+            {!fixed[i] && (
+              <button onClick={() => fix(i)} className="btn-glass-primary shrink-0 rounded-md px-3 py-1.5 text-xs font-medium">
+                {t.demo.fix}
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {/* Ações */}
+      <div className="mt-4 flex items-center gap-2">
+        {!allFixed ? (
+          <button onClick={() => setFixed([true, true, true])} className="btn-glass-primary flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium">
+            <Wrench size={15} /> {t.demo.fixAll}
+          </button>
+        ) : (
+          <span className="flex items-center gap-2 rounded-md bg-good/15 px-4 py-2 text-sm font-medium text-good">
+            <Check size={15} /> {t.demo.fixed}
+          </span>
+        )}
+        {fixedCount > 0 && (
+          <button onClick={() => setFixed([false, false, false])} className="btn-glass flex items-center gap-2 rounded-md px-3 py-2 text-sm">
+            <RotateCcw size={14} /> {t.home.demoReset}
+          </button>
+        )}
       </div>
     </div>
   );

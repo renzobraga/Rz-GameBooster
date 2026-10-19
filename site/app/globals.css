@@ -58,6 +58,36 @@ a {
   background: color-mix(in oklab, var(--color-action) 35%, transparent);
 }
 
+/* Glassmorphism buttons */
+.btn-glass-primary {
+  background: color-mix(in oklab, var(--color-action) 82%, transparent);
+  color: var(--color-bg);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 10px 30px -10px color-mix(in oklab, var(--color-action) 65%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.btn-glass-primary:hover {
+  background: var(--color-action);
+}
+.btn-glass {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-ink);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: background 0.2s ease;
+}
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

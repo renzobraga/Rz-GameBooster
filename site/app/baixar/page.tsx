@@ -21,7 +21,7 @@ export default function Page() {
           <p className="mt-3 max-w-md text-muted">{p.sub}</p>
           <a
             href={`${brand.github}/releases/latest`}
-            className="mt-8 inline-flex h-14 items-center gap-2 rounded-md bg-action px-8 text-base font-semibold text-bg transition-opacity hover:opacity-90"
+            className="btn-glass-primary mt-8 inline-flex h-14 items-center gap-2 rounded-md px-8 text-base font-semibold"
           >
             <Download size={20} /> {p.btn}
           </a>

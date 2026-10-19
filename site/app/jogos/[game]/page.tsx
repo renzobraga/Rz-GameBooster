@@ -58,10 +58,10 @@ export default function Page() {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/baixar" className="flex h-12 items-center rounded-md bg-action px-6 font-medium text-bg hover:opacity-90">
+            <Link href="/baixar" className="btn-glass-primary flex h-12 items-center rounded-md px-6 font-medium">
               {t.pages.game.optimize}
             </Link>
-            <Link href="/como-funciona" className="flex h-12 items-center rounded-md border border-line px-5 text-sm text-muted hover:text-ink">
+            <Link href="/como-funciona" className="btn-glass flex h-12 items-center rounded-md px-5 text-sm">
               {t.nav.how}
             </Link>
           </div>

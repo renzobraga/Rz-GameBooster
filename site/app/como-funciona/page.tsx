@@ -21,7 +21,7 @@ export default function Page() {
         ))}
       </div>
 
-      <Link href="/baixar" className="mt-10 inline-flex h-12 items-center rounded-md bg-action px-6 font-medium text-bg hover:opacity-90">
+      <Link href="/baixar" className="btn-glass-primary mt-10 inline-flex h-12 items-center rounded-md px-6 font-medium">
         {t.cta.download}
       </Link>
     </div>

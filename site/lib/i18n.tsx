@@ -66,6 +66,7 @@ export const dict = {
     showcase: { gallery: "Escolha o jogo", diagnostic: "Diagnóstico", optimizations: "Otimizações", history: "Histórico", about: "Sobre" },
     demo: {
       scoreLabel: "Nota do seu PC",
+      fix: "Corrigir",
       fixAll: "Corrigir tudo",
       fixed: "Corrigido",
       issues: [
@@ -128,7 +129,7 @@ export const dict = {
         sub: "Respostas rápidas do time. Não resolveu? Fala com a gente.",
         talk: "Falar com uma pessoa",
         replies: "Resposta em minutos",
-        whatsapp: "Chamar no WhatsApp",
+        whatsapp: "Falar no WhatsApp",
         orCall: "ou ligue",
         items: [
           { q: "Vou tomar ban?", a: "Não mexemos no processo, memória ou arquivos do jogo, só em configurações do Windows. Esse é o tipo de ajuste que anti-cheats toleram." },
@@ -182,6 +183,7 @@ export const dict = {
     showcase: { gallery: "Pick the game", diagnostic: "Diagnosis", optimizations: "Optimizations", history: "History", about: "About" },
     demo: {
       scoreLabel: "Your PC's score",
+      fix: "Fix",
       fixAll: "Fix everything",
       fixed: "Fixed",
       issues: [
