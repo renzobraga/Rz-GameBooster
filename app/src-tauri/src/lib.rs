@@ -26,6 +26,8 @@ pub fn run() {
             commands::history,
             commands::is_elevated,
             commands::relaunch_as_admin,
+            commands::reboot_system,
+            commands::system_info,
         ])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o Rz GameBooster");

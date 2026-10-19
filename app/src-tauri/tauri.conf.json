@@ -15,9 +15,9 @@
         "title": "Rz GameBooster",
         "width": 1040,
         "height": 720,
-        "minWidth": 900,
-        "minHeight": 620,
-        "resizable": true
+        "resizable": false,
+        "maximizable": false,
+        "center": true
       }
     ],
     "security": {

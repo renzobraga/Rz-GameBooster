@@ -1,13 +1,8 @@
 import { ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../lib/utils";
+import { useT } from "../lib/i18n";
 import type { GameProfile } from "../lib/api";
-
-const GENRE: Record<string, string> = {
-  cs2: "FPS tático",
-  gtav: "Mundo aberto",
-  valorant: "FPS competitivo",
-};
 
 const POSTER: Record<string, string> = {
   cs2: "/games/cs2.jpg",
@@ -17,6 +12,7 @@ const POSTER: Record<string, string> = {
 
 /** Tela inicial do app: escolha do jogo em galeria sanfona. */
 export function ElasticGallery({ games, onSelect }: { games: GameProfile[]; onSelect: (id: string) => void }) {
+  const { t } = useT();
   const [activeId, setActiveId] = useState<string | null>(null);
   // Jogos carregam de forma assíncrona; se ninguém foi escolhido ainda,
   // o primeiro conta como ativo.
@@ -74,11 +70,11 @@ export function ElasticGallery({ games, onSelect }: { games: GameProfile[]; onSe
                   )}
                 >
                   <span className="w-fit rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-white backdrop-blur-md">
-                    {GENRE[game.id] ?? "Jogo"}
+                    {t.genre[game.id] ?? "Game"}
                   </span>
                   <h3 className="text-3xl font-black uppercase leading-none text-white md:text-4xl">{game.name}</h3>
                   <div className="mt-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/80">
-                    Otimizar <ArrowUpRight className="h-4 w-4" />
+                    {t.optimize} <ArrowUpRight className="h-4 w-4" />
                   </div>
                 </div>
 

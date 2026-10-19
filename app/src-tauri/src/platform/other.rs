@@ -42,10 +42,30 @@ pub fn relaunch_as_admin() -> Result<()> {
     Err(anyhow!(NOT_WINDOWS))
 }
 
+pub fn reboot_system() -> Result<()> {
+    Err(anyhow!(NOT_WINDOWS))
+}
+
 pub fn mem_total_bytes() -> Option<u64> {
     None
 }
 
 pub fn free_disk_bytes(_path: &str) -> Option<u64> {
+    None
+}
+
+pub fn disk_total_free_bytes(_path: &str) -> Option<(u64, u64)> {
+    None
+}
+
+pub fn cpu_name() -> Option<String> {
+    None
+}
+
+pub fn gpu_name() -> Option<String> {
+    None
+}
+
+pub fn os_name() -> Option<String> {
     None
 }

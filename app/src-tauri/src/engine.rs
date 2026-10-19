@@ -25,6 +25,11 @@ pub struct TweakView {
     pub managed: bool,
     pub supported: bool,
     pub unsupported_reason: Option<String>,
+    /// Faz sentido para ESTE PC? (entra em "Aplicar recomendados").
+    pub recommended: bool,
+    /// Nota quando o ajuste nao se aplica bem a este PC (ex.: reducao de
+    /// efeitos num PC ja folgado).
+    pub fit_note: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -163,19 +168,55 @@ fn undo_change(change: &Change) -> Result<()> {
     }
 }
 
-pub fn list(game_id: &str) -> Result<Vec<TweakView>> {
+/// Troca titulo/descricao/how_to_check pela traducao do catalogo quando houver
+/// (lang != "pt"). O catalogo tras os blocos i18n (en, es).
+fn apply_lang(tweak: &mut Tweak, lang: &str) {
+    if lang == "pt" {
+        return;
+    }
+    let Some(obj) = tweak.i18n.get(lang) else { return };
+    if let Some(s) = obj.get("title").and_then(|v| v.as_str()) {
+        tweak.title = s.to_string();
+    }
+    if let Some(s) = obj.get("description").and_then(|v| v.as_str()) {
+        tweak.description = s.to_string();
+    }
+    if let Some(s) = obj.get("how_to_check").and_then(|v| v.as_str()) {
+        tweak.how_to_check = s.to_string();
+    }
+}
+
+/// Ajuste voltado so a PC fraco (reducao de qualidade/recursos): tem o preset
+/// "pc_fraco" e NAO esta nos presets de uso geral (seguro/competitivo).
+fn is_weak_pc_only(tweak: &Tweak) -> bool {
+    tweak.presets.iter().any(|p| p == "pc_fraco")
+        && !tweak.presets.iter().any(|p| p == "seguro" || p == "competitivo")
+}
+
+pub fn list(game_id: &str, lang: &str) -> Result<Vec<TweakView>> {
     let ctx = ctx_for(game_id)?;
     let journal = journal::load();
     let active = journal.active_ids();
     let catalog = load_catalog();
 
+    // PC "folgado": a partir de ~16 GB de RAM nao faz sentido recomendar
+    // reducoes de efeitos/recursos. Sem leitura, nao suprime nada.
+    let mem_gb = platform::mem_total_bytes().map(|b| b as f64 / 1_073_741_824.0);
+    let strong_pc = mem_gb.map(|g| g >= 15.5).unwrap_or(false);
+    let en = lang == "en";
+
     let mut out = Vec::new();
-    for tweak in catalog.tweaks {
+    for mut tweak in catalog.tweaks {
         if !tweak.applies_to(game_id) || ctx.game.excluded_tweaks.contains(&tweak.id) {
             continue;
         }
+        apply_lang(&mut tweak, lang);
         let (supported, unsupported_reason) = if needs_exe(&tweak) && ctx.exe.is_none() {
-            (false, Some(format!("{} não encontrado no sistema", ctx.game.name)))
+            (false, Some(if en {
+                format!("{} not found on this system", ctx.game.name)
+            } else {
+                format!("{} não encontrado no sistema", ctx.game.name)
+            }))
         } else {
             (true, None)
         };
@@ -185,7 +226,30 @@ pub fn list(game_id: &str) -> Result<Vec<TweakView>> {
         } else {
             detect_state(&tweak, &ctx)
         };
-        out.push(TweakView { tweak, state, managed, supported, unsupported_reason });
+
+        // Recomendacao ciente do hardware.
+        let weak_only = is_weak_pc_only(&tweak);
+        let suppress = weak_only && strong_pc;
+        let fit_note = if suppress {
+            Some(if en {
+                "Your PC has headroom, this reduction isn't needed.".to_string()
+            } else {
+                "Seu PC já tem folga, esta redução não é necessária.".to_string()
+            })
+        } else {
+            None
+        };
+        let recommended = supported && !suppress && tweak.risk == "safe" && tweak.evidence == "proven";
+
+        out.push(TweakView {
+            tweak,
+            state,
+            managed,
+            supported,
+            unsupported_reason,
+            recommended,
+            fit_note,
+        });
     }
     Ok(out)
 }
@@ -209,13 +273,13 @@ pub fn apply(game_id: &str, ids: &[String]) -> Result<BatchResult> {
             continue;
         }
         if journal.active(id).is_some() {
+            // Ja esta no diario (o app esta gerenciando): nao duplica a entrada.
             results.push(OpResult { tweak_id: id.clone(), ok: true, skipped: true, message: "já gerenciado".into() });
             continue;
         }
-        if detect_state(tweak, &ctx) == "applied" {
-            results.push(OpResult { tweak_id: id.clone(), ok: true, skipped: true, message: "já aplicado".into() });
-            continue;
-        }
+        // Mesmo se o valor ja estiver no alvo, registramos no diario: as acoes
+        // de registro sao idempotentes e o usuario ve a acao no historico (e
+        // pode reverter ao estado anterior, que gravamos aqui).
 
         let mut done: Vec<Change> = Vec::new();
         let mut error: Option<String> = None;
@@ -239,7 +303,16 @@ pub fn apply(game_id: &str, ids: &[String]) -> Result<BatchResult> {
         }
 
         journal.push(id, &tweak.title, done);
-        let _ = journal::save(&journal);
+        if let Err(e) = journal::save(&journal) {
+            // Nao engole o erro: o usuario precisa saber se o historico nao gravou.
+            results.push(OpResult {
+                tweak_id: id.clone(),
+                ok: false,
+                skipped: false,
+                message: format!("aplicado, mas falhou ao salvar o histórico: {e}"),
+            });
+            continue;
+        }
         if tweak.requires_reboot {
             needs_reboot = true;
         }

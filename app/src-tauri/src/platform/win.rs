@@ -165,6 +165,23 @@ pub fn relaunch_as_admin() -> Result<()> {
     Ok(())
 }
 
+/// Reinicia o Windows com uma contagem curta. O app roda como administrador,
+/// entao tem o privilegio de desligamento. Usa o shutdown.exe do proprio SO
+/// (nunca toca em processo/memoria de jogo, respeitando o VAC guard).
+pub fn reboot_system() -> Result<()> {
+    std::process::Command::new("shutdown")
+        .args([
+            "/r",
+            "/t",
+            "8",
+            "/c",
+            "Rz GameBooster: reiniciando para aplicar os ajustes.",
+        ])
+        .spawn()
+        .map_err(|e| anyhow!("falha ao reiniciar: {e}"))?;
+    Ok(())
+}
+
 pub fn mem_total_bytes() -> Option<u64> {
     unsafe {
         let mut st = MEMORYSTATUSEX {
@@ -177,10 +194,48 @@ pub fn mem_total_bytes() -> Option<u64> {
 }
 
 pub fn free_disk_bytes(path: &str) -> Option<u64> {
+    disk_total_free_bytes(path).map(|(_, free)| free)
+}
+
+/// (total, livre) em bytes do volume do caminho dado.
+pub fn disk_total_free_bytes(path: &str) -> Option<(u64, u64)> {
     let dir = wide(path);
     let mut free_avail: u64 = 0;
+    let mut total: u64 = 0;
     unsafe {
-        GetDiskFreeSpaceExW(PCWSTR(dir.as_ptr()), Some(&mut free_avail), None, None).ok()?;
+        GetDiskFreeSpaceExW(PCWSTR(dir.as_ptr()), Some(&mut free_avail), Some(&mut total), None).ok()?;
     }
-    Some(free_avail)
+    Some((total, free_avail))
+}
+
+/// Le um valor REG_SZ, aparado; None se ausente ou vazio.
+fn reg_sz(hive: &str, path: &str, name: &str) -> Option<String> {
+    match reg_read(hive, path, name) {
+        Ok(Some(RegValue::Sz(s))) => {
+            let t = s.trim().to_string();
+            if t.is_empty() {
+                None
+            } else {
+                Some(t)
+            }
+        }
+        _ => None,
+    }
+}
+
+pub fn cpu_name() -> Option<String> {
+    reg_sz("HKLM", "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "ProcessorNameString")
+}
+
+pub fn gpu_name() -> Option<String> {
+    // Placa primaria: primeira classe de display (0000).
+    reg_sz(
+        "HKLM",
+        "SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000",
+        "DriverDesc",
+    )
+}
+
+pub fn os_name() -> Option<String> {
+    reg_sz("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName")
 }
