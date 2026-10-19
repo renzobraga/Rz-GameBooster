@@ -61,10 +61,10 @@ pub fn run(lang: &str) -> Report {
         issues.push(Issue {
             id: "power_plan".into(),
             severity: "warning".into(),
-            title: pick("Plano de energia não é de desempenho", "Power plan is not set to performance"),
+            title: pick("O Windows está economizando energia", "Windows is saving power"),
             detail: pick(
-                "Trocar para Alto Desempenho evita que a CPU reduza a frequência.",
-                "Switching to High performance stops the CPU from throttling.",
+                "O plano de energia ativo não é o de desempenho, então a CPU pode reduzir a velocidade durante o jogo. Dá para trocar para Alto Desempenho.",
+                "The active power plan isn't the performance one, so the CPU can slow down while gaming. You can switch to High performance.",
             ),
             fix: Some("power.high_performance".into()),
         });
@@ -77,10 +77,10 @@ pub fn run(lang: &str) -> Report {
         issues.push(Issue {
             id: "gamedvr".into(),
             severity: "warning".into(),
-            title: pick("Gravação em segundo plano ligada", "Background recording is on"),
+            title: pick("Gravação automática do Windows está ligada", "Windows auto-recording is on"),
             detail: pick(
-                "A captura automática do Game Bar consome CPU/GPU durante o jogo.",
-                "Game Bar auto-capture uses CPU/GPU while you play.",
+                "A captura em segundo plano do Xbox Game Bar fica gravando enquanto você joga e consome CPU e placa de vídeo. Dá para desligar sem perder a gravação manual.",
+                "The Xbox Game Bar background capture records while you play and uses CPU and GPU. You can turn it off and still record manually.",
             ),
             fix: Some("gamedvr.disable".into()),
         });
@@ -93,10 +93,10 @@ pub fn run(lang: &str) -> Report {
         issues.push(Issue {
             id: "hags".into(),
             severity: "info".into(),
-            title: pick("HAGS desligado", "HAGS is off"),
+            title: pick("Um recurso de GPU que pode dar mais FPS está desligado", "A GPU feature that may boost FPS is off"),
             detail: pick(
-                "Pode ajudar em algumas máquinas. Meça antes e depois.",
-                "May help on some machines. Measure before and after.",
+                "O HAGS (agendamento de GPU por hardware) deixa a placa de vídeo gerenciar a própria memória, o que pode deixar o jogo mais fluido. O ganho varia de PC para PC, vale ligar e testar. Exige reiniciar.",
+                "HAGS (hardware-accelerated GPU scheduling) lets the graphics card manage its own memory, which can make games smoother. The gain varies by PC, worth enabling and testing. Needs a restart.",
             ),
             fix: Some("graphics.hags".into()),
         });

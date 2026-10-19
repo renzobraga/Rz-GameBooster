@@ -7,6 +7,14 @@ import type { SystemInfo } from "./api";
 // Pontuacao relativa de raster a 1080p. Referencia: GTX 1660 Super = 100.
 // Entradas mais especificas vem antes (ex.: "4060 ti" antes de "4060").
 const GPU_TABLE: { re: RegExp; score: number }[] = [
+  // NVIDIA RTX 50 (Blackwell)
+  { re: /\b(rtx\s*)?5090\b/, score: 540 },
+  { re: /\b(rtx\s*)?5080\b/, score: 410 },
+  { re: /\b(rtx\s*)?5070\s*ti\b/, score: 335 },
+  { re: /\b(rtx\s*)?5070\b/, score: 275 },
+  { re: /\b(rtx\s*)?5060\s*ti\b/, score: 205 },
+  { re: /\b(rtx\s*)?5060\b/, score: 168 },
+  { re: /\b(rtx\s*)?5050\b/, score: 132 },
   // NVIDIA RTX 40
   { re: /\b(rtx\s*)?4090\b/, score: 420 },
   { re: /\b(rtx\s*)?4080\b/, score: 360 },
@@ -73,13 +81,37 @@ export interface FpsEstimate {
   tier: FpsTier;
 }
 
+// Palpite por série/fabricante quando o modelo exato não está na tabela.
+// Garante uma estimativa para qualquer placa detectada, em vez de "não deu".
+function fallbackScore(n: string): number {
+  if (/\brtx\b/.test(n) || /\bgtx\b/.test(n) || n.includes("nvidia") || n.includes("geforce")) {
+    if (/\b50\d0\b/.test(n)) return 175;
+    if (/\b40\d0\b/.test(n)) return 160;
+    if (/\b30\d0\b/.test(n)) return 165;
+    if (/\b20\d0\b/.test(n)) return 150;
+    if (/\b16\d0\b/.test(n)) return 95;
+    if (/\b10\d0\b/.test(n)) return 85;
+    return 150; // NVIDIA recente não listada
+  }
+  if (n.includes("radeon") || n.includes("amd")) {
+    if (/\b[67]\d00\b/.test(n)) return 160; // RX 6000/7000
+    if (/\b5\d00\b/.test(n)) return 120; // RX 5000
+    if (/\b5\d0\b/.test(n)) return 65; // RX 500
+    return 95; // AMD não listada
+  }
+  if (n.includes("arc")) return 90; // Intel Arc dedicada
+  // Integradas e genéricas.
+  if (/(iris|uhd|hd graphics|vega|intel|graphics|adreno|mali)/.test(n)) return 22;
+  return 60; // algo foi detectado, mas é desconhecido
+}
+
 function gpuScore(name: string | null | undefined): number | null {
-  if (!name) return null;
+  if (!name || !name.trim()) return null;
   const n = name.toLowerCase();
   for (const { re, score } of GPU_TABLE) {
     if (re.test(n)) return score;
   }
-  return null;
+  return fallbackScore(n);
 }
 
 function ramFactor(ramGb: number | null | undefined): number {
