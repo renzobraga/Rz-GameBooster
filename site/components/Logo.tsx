@@ -2,7 +2,7 @@
 export function Logo() {
   return (
     <span className="flex items-center gap-2.5 select-none">
-      {/* Emblema Rz — o "objeto" */}
+      {/* Emblema Rz (o "objeto") */}
       <span className="relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-line bg-gradient-to-br from-panel to-bg">
         <span className="font-display -translate-y-[1px] text-[15px] font-extrabold italic leading-none tracking-tight text-ink">
           Rz

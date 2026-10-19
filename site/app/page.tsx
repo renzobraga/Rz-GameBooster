@@ -32,7 +32,7 @@ export default function Home() {
 
   return (
     <div className="mx-auto max-w-6xl px-4">
-      {/* Hero — assimétrico, alinhado à esquerda */}
+      {/* Hero · assimétrico, alinhado à esquerda */}
       <section className="grid items-center gap-12 py-14 lg:grid-cols-[1fr_1.05fr] lg:py-20">
         <div>
           <h1 className="font-display text-4xl font-bold leading-[1.02] tracking-tight sm:text-5xl md:text-[3.5rem]">
@@ -67,14 +67,14 @@ export default function Home() {
       {/* Vitrine do app (prints reais) */}
       <section className="border-t border-line py-16">
         <Reveal>
-          <SectionHead kicker="01 — o app" title={t.home.showcaseTitle} sub={t.home.showcaseSub} />
+          <SectionHead kicker="01 · o app" title={t.home.showcaseTitle} sub={t.home.showcaseSub} />
           <AppShowcase />
         </Reveal>
       </section>
 
       {/* Jogos */}
       <section className="border-t border-line py-16">
-        <SectionHead kicker="02 — jogos" title={t.home.gamesTitle} sub={t.home.gamesSub} href="/jogos" hrefLabel={t.nav.games} />
+        <SectionHead kicker="02 · jogos" title={t.home.gamesTitle} sub={t.home.gamesSub} href="/jogos" hrefLabel={t.nav.games} />
         <Reveal>
           <GamesStrip />
         </Reveal>
@@ -82,7 +82,7 @@ export default function Home() {
 
       {/* Passos */}
       <section className="border-t border-line py-16">
-        <SectionHead kicker="03 — fluxo" title={t.home.stepsTitle} />
+        <SectionHead kicker="03 · fluxo" title={t.home.stepsTitle} />
         <ol className="grid gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-3">
           {t.steps.map((s, i) => (
             <li key={i} className="list-none bg-panel p-6">
@@ -94,9 +94,9 @@ export default function Home() {
         </ol>
       </section>
 
-      {/* Segurança — conteúdo de verdade */}
+      {/* Segurança · conteúdo de verdade */}
       <section className="border-t border-line py-16">
-        <SectionHead kicker="04 — segurança" title={t.pages.security.title} sub={t.pages.security.sub} />
+        <SectionHead kicker="04 · segurança" title={t.pages.security.title} sub={t.pages.security.sub} />
         <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
           {t.pages.security.points.map((pt, i) => (
             <div key={i} className="flex gap-3">
@@ -125,7 +125,7 @@ export default function Home() {
         <FaqSection limit={5} />
       </section>
 
-      {/* CTA final — alinhado à esquerda */}
+      {/* CTA final · alinhado à esquerda */}
       <section className="border-t border-line py-16">
         <div className="flex flex-col gap-6 rounded-2xl border border-line bg-panel p-8 md:flex-row md:items-center md:justify-between md:p-12">
           <div>

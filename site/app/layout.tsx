@@ -11,7 +11,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 const oxanium = Oxanium({ variable: "--font-oxanium", subsets: ["latin"], weight: ["600", "700", "800"] });
 
 export const metadata: Metadata = {
-  title: `${brand.name} — ${brand.tagline}`,
+  title: `${brand.name} · ${brand.tagline}`,
   description: brand.tagline,
 };
 

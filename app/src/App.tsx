@@ -338,7 +338,7 @@ function Sobre({ game, update }: { game: GameProfile | undefined; update: { vers
 
       <div className="mt-5 text-muted">
         <p>Gratuito e open source (GPL-3.0). Não afiliado à Valve, Rockstar ou Riot.</p>
-        <p className="mt-1">Nunca tocamos no processo, memória ou arquivos dos jogos — apenas configurações do Windows, e tudo é reversível.</p>
+        <p className="mt-1">Nunca tocamos no processo, memória ou arquivos dos jogos, apenas configurações do Windows, e tudo é reversível.</p>
         <a href={SITE} className="mt-3 inline-block text-action hover:underline">
           Código e releases no GitHub
         </a>

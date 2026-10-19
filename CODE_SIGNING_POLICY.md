@@ -36,5 +36,5 @@ binaries are code-signed with a certificate donated by the
 - Maintainer GitHub accounts require multi-factor authentication (MFA).
 - All CI secrets are stored as GitHub Actions encrypted secrets.
 - The application never injects into games, reads process memory, or modifies
-  game files — it only changes Windows settings and the user's own config files,
+  game files, it only changes Windows settings and the user's own config files,
   and every change is reversible.

@@ -87,7 +87,7 @@
       "id": "graphics.hags",
       "category": "graficos",
       "title": "Agendamento de GPU acelerado por hardware (HAGS)",
-      "description": "Deixa a GPU gerenciar a própria memória. O ganho varia por máquina — meça antes e depois com um benchmark.",
+      "description": "Deixa a GPU gerenciar a própria memória. O ganho varia por máquina, meça antes e depois com um benchmark.",
       "risk": "moderate",
       "evidence": "situational",
       "requires_reboot": true,

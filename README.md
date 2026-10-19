@@ -1,6 +1,6 @@
 # Rz GameBooster
 
-Otimizador de Windows para jogos — **gratuito, open source e totalmente reversível**.
+Otimizador de Windows para jogos, **gratuito, open source e totalmente reversível**.
 Não injeta no jogo, não lê memória de processo e não toca em arquivos do jogo: só
 mexe em configurações do Windows, e tudo pode ser desfeito pelo histórico.
 

@@ -9,6 +9,6 @@
   "candidate_dirs": [],
   "anticheat": "VAC",
   "anticheat_level": "usermode",
-  "anticheat_notes": "O VAC é tolerante a ajustes de Windows. Nunca tocamos no processo, memória ou arquivos do jogo — apenas configurações do Windows.",
+  "anticheat_notes": "O VAC é tolerante a ajustes de Windows. Nunca tocamos no processo, memória ou arquivos do jogo, apenas configurações do Windows.",
   "excluded_tweaks": []
 }
