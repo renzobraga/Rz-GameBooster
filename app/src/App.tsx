@@ -50,7 +50,7 @@ import {
   type TweakView,
 } from "./lib/api";
 
-const APP_VERSION = "0.1.6";
+const APP_VERSION = "0.1.7";
 const SITE = "https://github.com/renzobraga/Rz-GameBooster";
 
 type Tab = "painel" | "otimizacoes" | "limpeza" | "restauracao" | "apps" | "config";
