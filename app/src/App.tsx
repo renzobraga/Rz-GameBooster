@@ -18,14 +18,11 @@ import {
   Shield,
   Package,
   Settings,
-  Gauge as GaugeIcon,
 } from "lucide-react";
 import { Gauge } from "./components/Gauge";
-import { ElasticGallery } from "./components/ElasticGallery";
 import { Logo } from "./components/Logo";
 import { LangToggle, useT } from "./lib/i18n";
 import { Toggle } from "./components/ui/toggle";
-import { estimateFps } from "./lib/fps";
 import {
   applyTweaks,
   checkUpdate,
@@ -36,16 +33,19 @@ import {
   installUpdate,
   isTauri,
   listGames,
+  listStartup,
   listTweaks,
   reboot,
   disableTweaks,
   disableAll,
+  setStartup,
   systemInfo,
   type BatchResult,
   type GameProfile,
   type Journal,
   type Report,
   type Severity,
+  type StartupItem,
   type SystemInfo,
   type TweakView,
 } from "./lib/api";
@@ -119,7 +119,9 @@ export default function App() {
   const [update, setUpdate] = useState<{ version: string; notes?: string; obj: unknown } | null>(null);
 
   const busy = busyKey !== null;
-  const game = games.find((g) => g.id === gameId);
+  // O tweak de "GPU dedicada para o jogo" depende de um jogo escolhido; sem a
+  // tela de jogos, ele fica de fora da lista de otimizações.
+  const visibleTweaks = tweaks.filter((tw) => tw.id !== "graphics.gpu_preference");
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pushToast = useCallback((kind: NonNullable<Toast>["kind"], msg: string) => {
@@ -188,7 +190,7 @@ export default function App() {
   const disableOne = (id: string) => run(`disable:${id}`, () => disableTweaks(gameId, [id]));
   const disableAllNow = () => run("disableAll", () => disableAll(gameId));
   const applyRecommended = () =>
-    run("recommended", () => applyTweaks(gameId, tweaks.filter((tw) => tw.recommended && tw.supported && tw.state !== "applied").map((tw) => tw.id)));
+    run("recommended", () => applyTweaks(gameId, visibleTweaks.filter((tw) => tw.recommended && tw.supported && tw.state !== "applied").map((tw) => tw.id)));
 
   // Limpeza: ação única (não é toggle), com toast do espaço liberado.
   const doCleanup = useCallback(
@@ -215,6 +217,24 @@ export default function App() {
       }
     },
     [busyKey, pushToast, refreshDiag, t]
+  );
+
+  // Liga/desliga um app de inicialização. Retorna se deu certo (p/ a UI reverter).
+  const onToggleStartup = useCallback(
+    async (id: string, enabled: boolean): Promise<boolean> => {
+      if (busyKey) return false;
+      setBusyKey(`startup:${id}`);
+      try {
+        await setStartup(id, enabled);
+        return true;
+      } catch (e) {
+        pushToast("error", e instanceof Error ? e.message : String(e));
+        return false;
+      } finally {
+        setBusyKey(null);
+      }
+    },
+    [busyKey, pushToast]
   );
 
   const doReboot = async () => {
@@ -255,20 +275,22 @@ export default function App() {
   if (view === "select") {
     return (
       <div className="flex h-full flex-col bg-bg text-ink">
-        <header className="flex items-center gap-3 border-b border-line px-5 py-3">
-          <Logo />
-          <span className="text-sm text-muted">{t.chooseGame}</span>
-          {Badges}
-        </header>
-        <div className="flex-1 overflow-hidden">
-          <ElasticGallery
-            games={games}
-            onSelect={(id) => {
-              setGameId(id);
+        <div className="flex items-center px-5 py-3">{Badges}</div>
+        <div className="flex flex-1 flex-col items-center justify-center gap-9 px-6 pb-16 text-center">
+          <div className="scale-[1.9]">
+            <Logo />
+          </div>
+          <p className="max-w-xs text-sm text-muted">{t.welcome.tagline}</p>
+          <button
+            onClick={() => {
+              setGameId(games[0]?.id ?? "");
               setTab("painel");
               setView("dash");
             }}
-          />
+            className="inline-flex items-center gap-2 rounded-lg bg-action px-12 py-3.5 text-base font-semibold text-bg shadow-lg shadow-action/20 transition-opacity hover:opacity-90"
+          >
+            {t.welcome.enter}
+          </button>
         </div>
         {overlays}
       </div>
@@ -344,30 +366,23 @@ export default function App() {
       {/* Coluna principal */}
       <div className="flex h-full min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-3 border-b border-line px-5 py-3">
-          <button
-            onClick={() => setView("select")}
-            disabled={busy}
-            className="flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-sm text-muted hover:text-ink disabled:opacity-50"
-          >
-            <ChevronLeft size={15} /> {game?.name ?? t.changeGame}
-          </button>
           {Badges}
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
           {tab === "painel" && (
             <div className="flex flex-col gap-6">
-              <Painel sys={sys} game={game} />
+              <Painel sys={sys} />
               {report && (
                 <Diagnostico report={report} busy={busy} busyKey={busyKey} lastScan={lastScan} onFix={fixIssue} onRescan={rescan} />
               )}
             </div>
           )}
-          {tab === "otimizacoes" && <Otimizacoes tweaks={tweaks} busy={busy} busyKey={busyKey} onApply={applyOne} onDisable={disableOne} onRecommended={applyRecommended} />}
+          {tab === "otimizacoes" && <Otimizacoes tweaks={visibleTweaks} busy={busy} busyKey={busyKey} onApply={applyOne} onDisable={disableOne} onRecommended={applyRecommended} />}
           {tab === "limpeza" && <Limpeza busy={busy} busyKey={busyKey} lastClean={lastClean} onClean={doCleanup} />}
           {tab === "restauracao" && <Historico journal={journal} tweaks={tweaks} busy={busy} busyKey={busyKey} onDisable={disableOne} onDisableAll={disableAllNow} />}
-          {tab === "apps" && <Soon icon={Package} title={t.soon.appsTitle} body={t.soon.appsBody} badge={t.soon.badge} />}
-          {tab === "config" && <Configuracoes game={game} update={update} />}
+          {tab === "apps" && <Apps busy={busy} busyKey={busyKey} onToggle={onToggleStartup} />}
+          {tab === "config" && <Configuracoes update={update} />}
         </main>
       </div>
 
@@ -478,24 +493,99 @@ function Limpeza({
   );
 }
 
-/* ---------- Placeholder "em breve" para seções ainda sem backend ---------- */
+/* ---------- Aba Apps: gerenciador de apps de inicialização ---------- */
 
-function Soon({ icon: Icon, title, body, badge }: { icon: typeof LayoutDashboard; title: string; body: string; badge: string }) {
+function Apps({
+  busy,
+  busyKey,
+  onToggle,
+}: {
+  busy: boolean;
+  busyKey: string | null;
+  onToggle: (id: string, enabled: boolean) => Promise<boolean>;
+}) {
+  const { t } = useT();
+  const [items, setItems] = useState<StartupItem[] | null>(null);
+
+  useEffect(() => {
+    let on = true;
+    listStartup()
+      .then((l) => {
+        if (on) setItems(l);
+      })
+      .catch(() => {
+        if (on) setItems([]);
+      });
+    return () => {
+      on = false;
+    };
+  }, []);
+
+  // Atualiza na hora (otimista) e reverte se o backend falhar.
+  const toggle = async (it: StartupItem) => {
+    const next = !it.enabled;
+    setItems((prev) => prev?.map((x) => (x.id === it.id ? { ...x, enabled: next } : x)) ?? prev);
+    const ok = await onToggle(it.id, next);
+    if (!ok) setItems((prev) => prev?.map((x) => (x.id === it.id ? { ...x, enabled: it.enabled } : x)) ?? prev);
+  };
+
+  const isSystem = (loc: string) => loc === "hklm" || loc === "folder_common";
+
+  if (items === null) {
+    return <p className="mx-auto max-w-3xl text-sm text-muted">{t.startup.loading}</p>;
+  }
+
   return (
-    <div className="mx-auto flex max-w-3xl flex-col items-center justify-center rounded-xl border border-dashed border-line bg-panel/50 px-6 py-16 text-center">
-      <div className="rounded-xl bg-action/10 p-3 text-action">
-        <Icon size={26} />
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-4 flex items-center gap-3 rounded-xl border border-line bg-panel p-4">
+        <div className="shrink-0 rounded-lg bg-action/10 p-2 text-action">
+          <Package size={20} />
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold text-ink">{t.startup.title}</h2>
+          <p className="mt-0.5 text-[11px] text-muted">{t.startup.subtitle}</p>
+        </div>
       </div>
-      <span className="mt-4 rounded-full border border-line px-2.5 py-0.5 text-[11px] uppercase tracking-wider text-muted">{badge}</span>
-      <h2 className="mt-3 text-lg font-semibold text-ink">{title}</h2>
-      <p className="mt-1 max-w-sm text-sm text-muted">{body}</p>
+
+      {items.length === 0 ? (
+        <p className="rounded-lg border border-line bg-panel p-4 text-sm text-muted">{t.startup.empty}</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {items.map((it) => {
+            const toggling = busyKey === `startup:${it.id}`;
+            return (
+              <li key={it.id} className="flex items-center gap-3 rounded-lg border border-line bg-panel p-4">
+                <div className="min-w-0 flex-1">
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                    {it.name}
+                    <span className="rounded-full border border-line px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted">
+                      {isSystem(it.location) ? t.startup.system : t.startup.user}
+                    </span>
+                  </p>
+                  <p className="mt-0.5 truncate font-mono text-[11px] text-muted" title={it.command}>
+                    {it.command}
+                  </p>
+                </div>
+                <Toggle
+                  size="large"
+                  aria-label={it.name}
+                  checked={it.enabled}
+                  busy={toggling}
+                  disabled={busy}
+                  onChange={() => toggle(it)}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
 
 /* ---------- Configurações: idioma + sobre ---------- */
 
-function Configuracoes({ game, update }: { game: GameProfile | undefined; update: { version: string } | null }) {
+function Configuracoes({ update }: { update: { version: string } | null }) {
   const { t } = useT();
   return (
     <div className="mx-auto max-w-2xl">
@@ -506,7 +596,7 @@ function Configuracoes({ game, update }: { game: GameProfile | undefined; update
         </div>
       </div>
       <div className="mt-6">
-        <Sobre game={game} update={update} />
+        <Sobre update={update} />
       </div>
     </div>
   );
@@ -563,7 +653,7 @@ function RebootModal({ open, busy, onReboot, onLater }: { open: boolean; busy: b
 
 /* ---------- Aba Painel: specs do PC + FPS estimado ---------- */
 
-function Painel({ sys, game }: { sys: SystemInfo | null; game: GameProfile | undefined }) {
+function Painel({ sys }: { sys: SystemInfo | null }) {
   const { t } = useT();
   const gb = (n: number | null | undefined) => (n != null ? `${n.toFixed(0)} GB` : t.pc.unknown);
   const storage =
@@ -576,14 +666,6 @@ function Painel({ sys, game }: { sys: SystemInfo | null; game: GameProfile | und
     { icon: MemoryStick, label: t.pc.ram, value: gb(sys?.ram_gb) },
     { icon: HardDrive, label: t.pc.storage, value: storage },
   ];
-
-  const est = game ? estimateFps(sys, game.id) : null;
-  const tierColor =
-    est?.tier === "elite" || est?.tier === "high"
-      ? "text-good"
-      : est?.tier === "smooth" || est?.tier === "playable"
-      ? "text-action"
-      : "text-amber";
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -601,29 +683,6 @@ function Painel({ sys, game }: { sys: SystemInfo | null; game: GameProfile | und
             </div>
           );
         })}
-      </div>
-
-      {/* FPS estimado a partir das configs, logo abaixo das specs. */}
-      <div className="mt-6 rounded-xl border border-line bg-panel p-5">
-        <div className="flex items-center gap-2">
-          <GaugeIcon size={16} className="text-action" />
-          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">{t.fps.title}</p>
-        </div>
-        {est && est.fps != null ? (
-          <>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-display text-5xl font-extrabold leading-none text-ink">
-                {est.low}<span className="mx-1 text-3xl font-bold text-muted">–</span>{est.high}
-              </span>
-              <span className="text-sm text-muted">{t.fps.unit}</span>
-              <span className={`ml-2 text-sm font-medium ${tierColor}`}>{t.fps.tiers[est.tier]}</span>
-            </div>
-            {game && <p className="mt-2 text-sm text-muted">{t.fps.sub(game.name)}</p>}
-            <p className="mt-1 text-[11px] text-muted">{t.fps.note}</p>
-          </>
-        ) : (
-          <p className="mt-2 text-sm text-muted">{t.fps.gpuUnknown}</p>
-        )}
       </div>
     </div>
   );
@@ -859,9 +918,8 @@ function Historico({
   );
 }
 
-function Sobre({ game, update }: { game: GameProfile | undefined; update: { version: string } | null }) {
+function Sobre({ update }: { update: { version: string } | null }) {
   const { t, lang } = useT();
-  const notes = game ? (lang === "en" ? t.gameNotes[game.id] ?? game.anticheat_notes : game.anticheat_notes) : "";
   return (
     <div className="mx-auto max-w-2xl text-sm">
       <h2 className="text-lg font-semibold">Rz GameBooster</h2>
@@ -870,15 +928,6 @@ function Sobre({ game, update }: { game: GameProfile | undefined; update: { vers
         {!isTauri && t.about.devTag}
       </p>
       <p className="mt-2 text-muted">{update ? t.about.updateAvail(update.version) : t.about.upToDate}</p>
-
-      {game && (
-        <div className="mt-5 rounded-lg border border-line bg-panel p-4">
-          <p className="font-medium">
-            {game.name} · {t.about.anticheat(game.anticheat, game.anticheat_level)}
-          </p>
-          <p className="mt-1 text-muted">{notes}</p>
-        </div>
-      )}
 
       <div className="mt-5 text-muted">
         <p>{t.about.gpl1}</p>

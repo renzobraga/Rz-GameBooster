@@ -102,6 +102,14 @@ export interface CleanScan {
   available: boolean;
 }
 
+export interface StartupItem {
+  id: string;
+  name: string;
+  command: string;
+  location: string; // hkcu | hklm | folder | folder_common
+  enabled: boolean;
+}
+
 export type Lang = "pt" | "en";
 
 export const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -306,6 +314,32 @@ export async function cleanup(ids: string[]): Promise<CleanReport> {
     message: "ok",
   }));
   return { results, freed_bytes: results.reduce((s, r) => s + r.freed_bytes, 0) };
+}
+
+// ---- Apps de inicialização ----
+const mockStartup: StartupItem[] = [
+  { id: "hkcu|Steam", name: "Steam", command: '"C:\\Program Files (x86)\\Steam\\steam.exe" -silent', location: "hkcu", enabled: true },
+  { id: "hkcu|Discord", name: "Discord", command: "C:\\Users\\voce\\AppData\\Local\\Discord\\Update.exe --processStart Discord.exe", location: "hkcu", enabled: true },
+  { id: "hkcu|EpicGamesLauncher", name: "EpicGamesLauncher", command: '"C:\\Program Files (x86)\\Epic Games\\Launcher\\...\\EpicGamesLauncher.exe" -silent', location: "hkcu", enabled: false },
+  { id: "hklm|NVIDIA App", name: "NVIDIA App", command: 'C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\CEF\\NVIDIA App.exe --silent', location: "hklm", enabled: true },
+  { id: "hklm|RtkAudUService", name: "RtkAudUService", command: "RtkAudUService64.exe -background", location: "hklm", enabled: true },
+  { id: "folder|OneDrive.lnk", name: "OneDrive", command: "C:\\Users\\voce\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe", location: "folder", enabled: false },
+];
+
+export async function listStartup(): Promise<StartupItem[]> {
+  if (isTauri) return call("list_startup");
+  await sleep(300);
+  return mockStartup.map((s) => ({ ...s }));
+}
+
+export async function setStartup(id: string, enabled: boolean): Promise<void> {
+  if (isTauri) {
+    await call("set_startup", { id, enabled });
+    return;
+  }
+  await sleep(MOCK_DELAY);
+  const it = mockStartup.find((s) => s.id === id);
+  if (it) it.enabled = enabled;
 }
 export async function isElevated(): Promise<boolean> {
   return isTauri ? call("is_elevated") : true;

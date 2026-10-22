@@ -2,6 +2,7 @@ mod catalog;
 mod clean;
 mod commands;
 mod detect;
+mod startup;
 mod diagnostics;
 mod engine;
 mod journal;
@@ -29,6 +30,8 @@ pub fn run() {
             commands::history,
             commands::cleanup_scan,
             commands::cleanup,
+            commands::list_startup,
+            commands::set_startup,
             commands::is_elevated,
             commands::relaunch_as_admin,
             commands::reboot_system,

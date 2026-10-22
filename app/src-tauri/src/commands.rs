@@ -5,6 +5,7 @@ use serde::Serialize;
 use crate::catalog::{load_games, GameProfile};
 use crate::clean::{self, CleanReport, CleanScan};
 use crate::diagnostics::{self, Report};
+use crate::startup::{self, StartupItem};
 use crate::engine::{self, BatchResult, TweakView};
 use crate::journal::Journal;
 use crate::platform;
@@ -94,6 +95,18 @@ pub fn cleanup_scan() -> Vec<CleanScan> {
 #[tauri::command]
 pub fn cleanup(ids: Vec<String>) -> CleanReport {
     clean::run(&ids)
+}
+
+/// Lista os apps que abrem junto com o Windows (chaves Run + pastas Startup).
+#[tauri::command]
+pub fn list_startup() -> Vec<StartupItem> {
+    startup::list()
+}
+
+/// Liga/desliga um app de inicialização (via StartupApproved, reversível).
+#[tauri::command]
+pub fn set_startup(id: String, enabled: bool) -> Result<(), String> {
+    startup::set(&id, enabled).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

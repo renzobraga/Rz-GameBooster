@@ -14,6 +14,8 @@ interface Dict {
   nav: { collapse: string; expand: string };
   soon: { badge: string; cleanupTitle: string; cleanupBody: string; appsTitle: string; appsBody: string };
   cfg: { language: string };
+  welcome: { enter: string; tagline: string };
+  startup: { title: string; subtitle: string; loading: string; empty: string; user: string; system: string };
   clean: {
     title: string;
     subtitle: (when: string) => string;
@@ -65,6 +67,15 @@ const PT: Dict = {
     appsBody: "Em breve: gerenciar apps de inicialização e reduzir bloatware que pesa no boot.",
   },
   cfg: { language: "Idioma" },
+  welcome: { enter: "Entrar", tagline: "Otimize o Windows para jogar melhor. Reversível e sem tocar nos jogos." },
+  startup: {
+    title: "Apps de Inicialização",
+    subtitle: "Programas que abrem junto com o Windows. Desligue os que não precisa para acelerar o boot.",
+    loading: "Carregando…",
+    empty: "Nenhum app de inicialização encontrado.",
+    user: "Usuário",
+    system: "Sistema",
+  },
   clean: {
     title: "Limpeza do Sistema",
     subtitle: (when) => `Última limpeza: ${when}`,
@@ -158,6 +169,15 @@ const EN: Dict = {
     appsBody: "Coming soon: manage startup apps and trim bloatware that slows your boot.",
   },
   cfg: { language: "Language" },
+  welcome: { enter: "Enter", tagline: "Tune Windows for better gaming. Reversible, and it never touches the games." },
+  startup: {
+    title: "Startup Apps",
+    subtitle: "Programs that launch with Windows. Turn off the ones you don't need to speed up boot.",
+    loading: "Loading…",
+    empty: "No startup apps found.",
+    user: "User",
+    system: "System",
+  },
   clean: {
     title: "System Cleanup",
     subtitle: (when) => `Last cleanup: ${when}`,

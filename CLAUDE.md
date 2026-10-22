@@ -8,9 +8,12 @@ regra de ouro contra anti-cheat (VAC/BattlEye/Vanguard). Tudo é reversível.
 
 - `app/` — **app desktop (Tauri 2)**.
   - `app/src/` — frontend React + TypeScript + Tailwind.
-    - `App.tsx` — UI e estado. Menu lateral (sidebar) estilo TogsBoost: Painel
-      (specs+FPS+diagnóstico), Otimizações, Limpeza (`Limpeza`), Restauração
-      (ex-Histórico), Apps (placeholder `Soon`), Configurações (idioma+sobre).
+    - `App.tsx` — UI e estado. Tela inicial = logo + botão "Entrar" (sem jogos).
+      Menu lateral (sidebar): Painel (specs + diagnóstico), Otimizações, Limpeza
+      (`Limpeza`), Restauração (ex-Histórico), Apps (`Apps` — gerenciador de
+      inicialização), Configurações (idioma + sobre).
+      Sem seleção de jogo: tweaks são todos `games:["*"]`. O FPS (lib/fps.ts) e a
+      galeria `ElasticGallery` ficaram de lado (não usados).
     - `lib/api.ts` — ponte com o backend Rust (`invoke`); mocks no navegador.
     - `lib/fps.ts` — estimativa de FPS a partir da GPU/RAM (`GPU_TABLE`, `estimateFps`).
     - `lib/i18n.tsx` — textos PT/EN.
@@ -20,6 +23,8 @@ regra de ouro contra anti-cheat (VAC/BattlEye/Vanguard). Tudo é reversível.
     - `src/engine.rs` — aplica/reverte tweaks (`apply`/`disable`), orquestra catálogo.
     - `src/catalog.rs` — carrega perfis de jogo e tweaks (`catalog/`).
     - `src/clean.rs` — limpeza (temp, prefetch, cache do WU, miniaturas, lixeira).
+    - `src/startup.rs` — apps de inicialização (Run + pastas Startup; liga/desliga
+      via StartupApproved, como o Gerenciador de Tarefas).
     - `src/journal.rs` — histórico reversível (`RegValue`, `Entry`).
     - `src/detect.rs` — localiza o executável do jogo (Steam etc.).
     - `src/platform/win.rs` — registro, energia, GPU, elevação, reboot (Windows).
