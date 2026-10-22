@@ -13,7 +13,7 @@ use windows::core::{GUID, PCWSTR};
 use windows::Win32::Storage::FileSystem::GetDiskFreeSpaceExW;
 use windows::Win32::System::Power::{PowerGetActiveScheme, PowerSetActiveScheme};
 use windows::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
-use windows::Win32::UI::Shell::{IsUserAnAdmin, ShellExecuteW};
+use windows::Win32::UI::Shell::{IsUserAnAdmin, ShellExecuteW, SHQueryRecycleBinW, SHQUERYRBINFO};
 use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
 use crate::journal::RegValue;
@@ -285,4 +285,21 @@ pub fn gpu_name() -> Option<String> {
 
 pub fn os_name() -> Option<String> {
     reg_sz("HKLM", "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName")
+}
+
+/// (bytes, número de itens) na Lixeira de todos os drives. (0, 0) se estiver
+/// vazia ou se a consulta falhar. Só lê — não apaga nada.
+pub fn recycle_bin_info() -> (u64, u64) {
+    unsafe {
+        let mut info = SHQUERYRBINFO {
+            cbSize: std::mem::size_of::<SHQUERYRBINFO>() as u32,
+            i64Size: 0,
+            i64NumItems: 0,
+        };
+        if SHQueryRecycleBinW(PCWSTR::null(), &mut info).is_ok() {
+            (info.i64Size.max(0) as u64, info.i64NumItems.max(0) as u64)
+        } else {
+            (0, 0)
+        }
+    }
 }

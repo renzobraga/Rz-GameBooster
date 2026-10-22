@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Activity,
   SlidersHorizontal,
-  History,
   Info,
   Download,
   ChevronLeft,
+  ChevronRight,
   Loader2,
   CheckCircle2,
   AlertCircle,
@@ -15,6 +14,10 @@ import {
   MemoryStick,
   HardDrive,
   LayoutDashboard,
+  Trash2,
+  Shield,
+  Package,
+  Settings,
   Gauge as GaugeIcon,
 } from "lucide-react";
 import { Gauge } from "./components/Gauge";
@@ -26,6 +29,8 @@ import { estimateFps } from "./lib/fps";
 import {
   applyTweaks,
   checkUpdate,
+  cleanup,
+  cleanupScan,
   diagnose,
   history,
   installUpdate,
@@ -48,13 +53,23 @@ import {
 const APP_VERSION = "0.1.6";
 const SITE = "https://github.com/renzobraga/Rz-GameBooster";
 
-type Tab = "painel" | "diagnostico" | "otimizacoes" | "historico" | "sobre";
-const TAB_ORDER: { id: Tab; icon: typeof Activity }[] = [
+type Tab = "painel" | "otimizacoes" | "limpeza" | "restauracao" | "apps" | "config";
+const TAB_ORDER: { id: Tab; icon: typeof LayoutDashboard }[] = [
   { id: "painel", icon: LayoutDashboard },
-  { id: "diagnostico", icon: Activity },
   { id: "otimizacoes", icon: SlidersHorizontal },
-  { id: "historico", icon: History },
-  { id: "sobre", icon: Info },
+  { id: "limpeza", icon: Trash2 },
+  { id: "restauracao", icon: Shield },
+  { id: "apps", icon: Package },
+  { id: "config", icon: Settings },
+];
+
+// Tarefas de limpeza (os ids batem com o backend em src-tauri/src/clean.rs).
+const CLEAN_TASKS: { id: string; dangerous?: boolean }[] = [
+  { id: "clean.temp" },
+  { id: "clean.prefetch" },
+  { id: "clean.recycle_bin", dangerous: true },
+  { id: "clean.windows_update" },
+  { id: "clean.thumbnails" },
 ];
 
 const sevColor: Record<Severity, string> = {
@@ -69,6 +84,14 @@ function isBatch(x: unknown): x is BatchResult {
   return !!x && typeof x === "object" && "needs_reboot" in x;
 }
 
+// Formata bytes de forma curta (GB/MB/KB) para os rótulos de limpeza.
+function fmtBytes(n: number): string {
+  if (n >= 1024 ** 3) return `${(n / 1024 ** 3).toFixed(1)} GB`;
+  if (n >= 1024 ** 2) return `${Math.round(n / 1024 ** 2)} MB`;
+  if (n >= 1024) return `${Math.round(n / 1024)} KB`;
+  return `${n} B`;
+}
+
 export default function App() {
   const { lang, t } = useT();
   const [games, setGames] = useState<GameProfile[]>([]);
@@ -78,7 +101,16 @@ export default function App() {
   const [report, setReport] = useState<Report | null>(null);
   const [journal, setJournal] = useState<Journal>({ entries: [] });
   const [sys, setSys] = useState<SystemInfo | null>(null);
-  const [tab, setTab] = useState<Tab>("diagnostico");
+  const [tab, setTab] = useState<Tab>("painel");
+  const [collapsed, setCollapsed] = useState(false);
+  const [lastClean, setLastClean] = useState<number | null>(() => {
+    try {
+      const v = localStorage.getItem("rz-last-cleanup");
+      return v ? Number(v) : null;
+    } catch {
+      return null;
+    }
+  });
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [lastScan, setLastScan] = useState<number | null>(null);
   const [toast, setToast] = useState<Toast>(null);
@@ -158,6 +190,33 @@ export default function App() {
   const applyRecommended = () =>
     run("recommended", () => applyTweaks(gameId, tweaks.filter((tw) => tw.recommended && tw.supported && tw.state !== "applied").map((tw) => tw.id)));
 
+  // Limpeza: ação única (não é toggle), com toast do espaço liberado.
+  const doCleanup = useCallback(
+    async (ids: string[]) => {
+      if (busyKey || ids.length === 0) return;
+      setBusyKey("cleanup");
+      try {
+        const rep = await cleanup(ids);
+        const now = Date.now();
+        setLastClean(now);
+        try {
+          localStorage.setItem("rz-last-cleanup", String(now));
+        } catch {
+          /* localStorage bloqueado */
+        }
+        const mb = rep.freed_bytes / (1024 * 1024);
+        const freed = mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${Math.round(mb)} MB`;
+        pushToast("success", rep.freed_bytes > 0 ? t.clean.done(freed) : t.clean.doneEmpty);
+        await refreshDiag();
+      } catch (e) {
+        pushToast("error", e instanceof Error ? e.message : String(e));
+      } finally {
+        setBusyKey(null);
+      }
+    },
+    [busyKey, pushToast, refreshDiag, t]
+  );
+
   const doReboot = async () => {
     setRebooting(true);
     try {
@@ -216,59 +275,239 @@ export default function App() {
     );
   }
 
+  const tabLabel = (id: Tab) =>
+    id === "painel"
+      ? t.tabs.panel
+      : id === "otimizacoes"
+      ? t.tabs.opt
+      : id === "limpeza"
+      ? t.tabs.cleanup
+      : id === "restauracao"
+      ? t.tabs.restore
+      : id === "apps"
+      ? t.tabs.apps
+      : t.tabs.settings;
+
   return (
-    <div className="flex h-full flex-col bg-bg text-ink">
-      <header className="flex items-center gap-3 border-b border-line px-5 py-3">
-        <Logo />
-        <button
-          onClick={() => setView("select")}
-          disabled={busy}
-          className="flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-sm text-muted hover:text-ink disabled:opacity-50"
-        >
-          <ChevronLeft size={15} /> {game?.name ?? t.changeGame}
-        </button>
-        {Badges}
-      </header>
+    <div className="flex h-full bg-bg text-ink">
+      {/* Menu lateral (sidebar) */}
+      <aside
+        className={`flex h-full shrink-0 flex-col border-r border-line bg-panel transition-[width] duration-200 ${
+          collapsed ? "w-[64px]" : "w-56"
+        }`}
+      >
+        <div className={`flex items-center py-4 ${collapsed ? "justify-center px-0" : "px-4"}`}>
+          <Logo compact={collapsed} />
+        </div>
 
-      <nav className="flex gap-1 border-b border-line px-3">
-        {TAB_ORDER.map((tb) => {
-          const Icon = tb.icon;
-          const active = tab === tb.id;
-          const label =
-            tb.id === "painel"
-              ? t.tabs.panel
-              : tb.id === "diagnostico"
-              ? t.tabs.diag
-              : tb.id === "otimizacoes"
-              ? t.tabs.opt
-              : tb.id === "historico"
-              ? t.tabs.hist
-              : t.tabs.about;
-          return (
-            <button
-              key={tb.id}
-              onClick={() => setTab(tb.id)}
-              className={`flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm transition-colors ${
-                active ? "border-action text-ink" : "border-transparent text-muted hover:text-ink"
-              }`}
-            >
-              <Icon size={15} /> {label}
-            </button>
-          );
-        })}
-      </nav>
+        <nav className="flex flex-1 flex-col gap-1 px-2">
+          {TAB_ORDER.map((tb) => {
+            const Icon = tb.icon;
+            const active = tab === tb.id;
+            const label = tabLabel(tb.id);
+            return (
+              <button
+                key={tb.id}
+                onClick={() => setTab(tb.id)}
+                title={label}
+                aria-current={active ? "page" : undefined}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                  collapsed ? "justify-center" : ""
+                } ${active ? "bg-action/15 text-ink" : "text-muted hover:bg-line/50 hover:text-ink"}`}
+              >
+                <Icon size={18} className={active ? "text-action" : ""} />
+                {!collapsed && <span className="truncate">{label}</span>}
+              </button>
+            );
+          })}
+        </nav>
 
-      <main className="flex-1 overflow-y-auto p-6">
-        {tab === "painel" && <Painel sys={sys} game={game} />}
-        {tab === "diagnostico" && report && (
-          <Diagnostico report={report} busy={busy} busyKey={busyKey} lastScan={lastScan} onFix={fixIssue} onRescan={rescan} />
+        <div className="px-2 pb-2">
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            title={collapsed ? t.nav.expand : t.nav.collapse}
+            aria-label={collapsed ? t.nav.expand : t.nav.collapse}
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted hover:bg-line/50 hover:text-ink ${
+              collapsed ? "justify-center" : ""
+            }`}
+          >
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            {!collapsed && <span>{t.nav.collapse}</span>}
+          </button>
+        </div>
+
+        {!collapsed && (
+          <div className="px-4 pb-4 font-mono text-[11px] text-muted">Rz GameBooster v{APP_VERSION}</div>
         )}
-        {tab === "otimizacoes" && <Otimizacoes tweaks={tweaks} busy={busy} busyKey={busyKey} onApply={applyOne} onDisable={disableOne} onRecommended={applyRecommended} />}
-        {tab === "historico" && <Historico journal={journal} tweaks={tweaks} busy={busy} busyKey={busyKey} onDisable={disableOne} onDisableAll={disableAllNow} />}
-        {tab === "sobre" && <Sobre game={game} update={update} />}
-      </main>
+      </aside>
+
+      {/* Coluna principal */}
+      <div className="flex h-full min-w-0 flex-1 flex-col">
+        <header className="flex items-center gap-3 border-b border-line px-5 py-3">
+          <button
+            onClick={() => setView("select")}
+            disabled={busy}
+            className="flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-sm text-muted hover:text-ink disabled:opacity-50"
+          >
+            <ChevronLeft size={15} /> {game?.name ?? t.changeGame}
+          </button>
+          {Badges}
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-6">
+          {tab === "painel" && (
+            <div className="flex flex-col gap-6">
+              <Painel sys={sys} game={game} />
+              {report && (
+                <Diagnostico report={report} busy={busy} busyKey={busyKey} lastScan={lastScan} onFix={fixIssue} onRescan={rescan} />
+              )}
+            </div>
+          )}
+          {tab === "otimizacoes" && <Otimizacoes tweaks={tweaks} busy={busy} busyKey={busyKey} onApply={applyOne} onDisable={disableOne} onRecommended={applyRecommended} />}
+          {tab === "limpeza" && <Limpeza busy={busy} busyKey={busyKey} lastClean={lastClean} onClean={doCleanup} />}
+          {tab === "restauracao" && <Historico journal={journal} tweaks={tweaks} busy={busy} busyKey={busyKey} onDisable={disableOne} onDisableAll={disableAllNow} />}
+          {tab === "apps" && <Soon icon={Package} title={t.soon.appsTitle} body={t.soon.appsBody} badge={t.soon.badge} />}
+          {tab === "config" && <Configuracoes game={game} update={update} />}
+        </main>
+      </div>
 
       {overlays}
+    </div>
+  );
+}
+
+/* ---------- Aba Limpeza: seleciona tarefas e limpa (estilo TogsBoost) ---------- */
+
+function Limpeza({
+  busy,
+  busyKey,
+  lastClean,
+  onClean,
+}: {
+  busy: boolean;
+  busyKey: string | null;
+  lastClean: number | null;
+  onClean: (ids: string[]) => void;
+}) {
+  const { t, lang } = useT();
+  // Começa tudo desmarcado: o usuário escolhe conscientemente o que limpar
+  // antes de clicar em "Limpar Selecionados" (nada é apagado por padrão).
+  const [sel, setSel] = useState<Record<string, boolean>>({});
+  // Estado real do sistema por tarefa (null = ainda verificando).
+  const [scan, setScan] = useState<Record<string, { bytes: number; available: boolean }> | null>(null);
+  const cleaning = busyKey === "cleanup";
+
+  // Verifica o que há para limpar ao abrir a aba e após cada limpeza.
+  useEffect(() => {
+    let on = true;
+    setScan(null);
+    cleanupScan()
+      .then((list) => {
+        if (on) setScan(Object.fromEntries(list.map((s) => [s.id, { bytes: s.bytes, available: s.available }])));
+      })
+      .catch(() => {
+        if (on) setScan({});
+      });
+    return () => {
+      on = false;
+    };
+  }, [lastClean]);
+
+  const loading = scan === null;
+  // Só entram na limpeza os itens marcados E que têm algo para limpar.
+  const selectedIds = CLEAN_TASKS.filter((tk) => sel[tk.id] && scan?.[tk.id]?.available).map((tk) => tk.id);
+  const when = lastClean ? new Date(lastClean).toLocaleString(lang === "pt" ? "pt-BR" : "en-US") : t.clean.never;
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-4 flex items-center gap-3 rounded-xl border border-line bg-panel p-4">
+        <div className="shrink-0 rounded-lg bg-action/10 p-2 text-action">
+          <Trash2 size={20} />
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold text-ink">{t.clean.title}</h2>
+          <p className="mt-0.5 text-[11px] text-muted">{t.clean.subtitle(when)}</p>
+        </div>
+      </div>
+
+      <ul className="flex flex-col gap-2">
+        {CLEAN_TASKS.map((tk) => {
+          const info = t.cleanTasks[tk.id];
+          const st = scan?.[tk.id];
+          const available = !loading && !!st?.available;
+          const status = loading ? t.clean.scanning : available ? `≈ ${fmtBytes(st!.bytes)}` : t.clean.nothing;
+          return (
+            <li
+              key={tk.id}
+              className={`flex items-start gap-3 rounded-lg border border-line bg-panel p-4 ${available || loading ? "" : "opacity-60"}`}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                  {info.title}
+                  {tk.dangerous && (
+                    <span className="rounded-full bg-bad/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-bad">{t.clean.dangerous}</span>
+                  )}
+                </p>
+                <p className="mt-0.5 text-sm text-muted">{info.desc}</p>
+                <p className={`mt-1 font-mono text-[11px] ${available ? "text-action" : "text-muted"}`}>{status}</p>
+              </div>
+              <Toggle
+                size="large"
+                aria-label={info.title}
+                checked={!!sel[tk.id] && available}
+                disabled={busy || loading || !available}
+                onChange={() => setSel((s) => ({ ...s, [tk.id]: !s[tk.id] }))}
+              />
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="mt-4 flex items-center justify-between">
+        <p className="text-sm text-muted">{t.clean.selected(selectedIds.length)}</p>
+        <button
+          onClick={() => onClean(selectedIds)}
+          disabled={busy || selectedIds.length === 0}
+          className="inline-flex items-center gap-1.5 rounded-md bg-action px-4 py-2 text-sm font-medium text-bg hover:opacity-90 disabled:opacity-50"
+        >
+          {cleaning ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+          {cleaning ? t.clean.running : t.clean.run}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Placeholder "em breve" para seções ainda sem backend ---------- */
+
+function Soon({ icon: Icon, title, body, badge }: { icon: typeof LayoutDashboard; title: string; body: string; badge: string }) {
+  return (
+    <div className="mx-auto flex max-w-3xl flex-col items-center justify-center rounded-xl border border-dashed border-line bg-panel/50 px-6 py-16 text-center">
+      <div className="rounded-xl bg-action/10 p-3 text-action">
+        <Icon size={26} />
+      </div>
+      <span className="mt-4 rounded-full border border-line px-2.5 py-0.5 text-[11px] uppercase tracking-wider text-muted">{badge}</span>
+      <h2 className="mt-3 text-lg font-semibold text-ink">{title}</h2>
+      <p className="mt-1 max-w-sm text-sm text-muted">{body}</p>
+    </div>
+  );
+}
+
+/* ---------- Configurações: idioma + sobre ---------- */
+
+function Configuracoes({ game, update }: { game: GameProfile | undefined; update: { version: string } | null }) {
+  const { t } = useT();
+  return (
+    <div className="mx-auto max-w-2xl">
+      <div className="rounded-xl border border-line bg-panel p-5">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-muted">{t.cfg.language}</p>
+        <div className="mt-3">
+          <LangToggle />
+        </div>
+      </div>
+      <div className="mt-6">
+        <Sobre game={game} update={update} />
+      </div>
     </div>
   );
 }
@@ -373,7 +612,9 @@ function Painel({ sys, game }: { sys: SystemInfo | null; game: GameProfile | und
         {est && est.fps != null ? (
           <>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-display text-5xl font-extrabold leading-none text-ink">{est.fps}</span>
+              <span className="font-display text-5xl font-extrabold leading-none text-ink">
+                {est.low}<span className="mx-1 text-3xl font-bold text-muted">–</span>{est.high}
+              </span>
               <span className="text-sm text-muted">{t.fps.unit}</span>
               <span className={`ml-2 text-sm font-medium ${tierColor}`}>{t.fps.tiers[est.tier]}</span>
             </div>

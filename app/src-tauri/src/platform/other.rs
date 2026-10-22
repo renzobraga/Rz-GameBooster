@@ -73,3 +73,7 @@ pub fn gpu_name() -> Option<String> {
 pub fn os_name() -> Option<String> {
     None
 }
+
+pub fn recycle_bin_info() -> (u64, u64) {
+    (0, 0)
+}

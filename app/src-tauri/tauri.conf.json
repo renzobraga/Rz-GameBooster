@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Rz GameBooster",
-        "width": 1040,
-        "height": 720,
+        "width": 900,
+        "height": 700,
         "resizable": false,
         "maximizable": false,
         "center": true

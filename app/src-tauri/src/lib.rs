@@ -1,4 +1,5 @@
 mod catalog;
+mod clean;
 mod commands;
 mod detect;
 mod diagnostics;
@@ -26,6 +27,8 @@ pub fn run() {
             commands::disable_tweaks,
             commands::disable_all,
             commands::history,
+            commands::cleanup_scan,
+            commands::cleanup,
             commands::is_elevated,
             commands::relaunch_as_admin,
             commands::reboot_system,

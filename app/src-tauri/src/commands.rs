@@ -3,6 +3,7 @@
 use serde::Serialize;
 
 use crate::catalog::{load_games, GameProfile};
+use crate::clean::{self, CleanReport, CleanScan};
 use crate::diagnostics::{self, Report};
 use crate::engine::{self, BatchResult, TweakView};
 use crate::journal::Journal;
@@ -80,6 +81,19 @@ pub fn disable_all(game_id: String) -> Result<BatchResult, String> {
 #[tauri::command]
 pub fn history() -> Journal {
     engine::history()
+}
+
+/// Verifica, sem apagar nada, quanto cada tarefa de limpeza tem para liberar.
+#[tauri::command]
+pub fn cleanup_scan() -> Vec<CleanScan> {
+    clean::scan()
+}
+
+/// Limpeza do sistema: executa as tarefas selecionadas (temporários, prefetch,
+/// cache do Windows Update, miniaturas, lixeira) e devolve o espaço liberado.
+#[tauri::command]
+pub fn cleanup(ids: Vec<String>) -> CleanReport {
+    clean::run(&ids)
 }
 
 #[tauri::command]

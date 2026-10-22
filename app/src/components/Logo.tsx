@@ -1,5 +1,5 @@
 /** Logo da marca: emblema "Rz" (com arco de velocímetro) + "GameBooster". */
-export function Logo() {
+export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <span className="flex items-center gap-2.5 select-none">
       <span className="relative inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-line bg-gradient-to-br from-panel to-bg">
@@ -11,10 +11,12 @@ export function Logo() {
         </svg>
         <span className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-inset ring-good/15" />
       </span>
-      <span className="font-display text-[15px] font-bold leading-none tracking-tight">
-        <span className="text-ink">Game</span>
-        <span className="text-good">Booster</span>
-      </span>
+      {!compact && (
+        <span className="font-display text-[15px] font-bold leading-none tracking-tight">
+          <span className="text-ink">Game</span>
+          <span className="text-good">Booster</span>
+        </span>
+      )}
     </span>
   );
 }

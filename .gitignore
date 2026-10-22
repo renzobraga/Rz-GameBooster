@@ -16,3 +16,9 @@ app/src-tauri/target/
 *.log
 .DS_Store
 Thumbs.db
+
+# graphify: versione o mapa (graph.json + GRAPH_REPORT.md); ignore o resto
+graphify-out/graph.html
+graphify-out/cache/
+graphify-out/.graphify_*
+graphify-out/cost.json

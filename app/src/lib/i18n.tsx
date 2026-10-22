@@ -10,7 +10,24 @@ interface Dict {
   chooseGame: string;
   changeGame: string;
   update: (v: string) => string;
-  tabs: { panel: string; diag: string; opt: string; hist: string; about: string };
+  tabs: { panel: string; opt: string; cleanup: string; restore: string; apps: string; settings: string };
+  nav: { collapse: string; expand: string };
+  soon: { badge: string; cleanupTitle: string; cleanupBody: string; appsTitle: string; appsBody: string };
+  cfg: { language: string };
+  clean: {
+    title: string;
+    subtitle: (when: string) => string;
+    never: string;
+    run: string;
+    running: string;
+    dangerous: string;
+    selected: (n: number) => string;
+    done: (freed: string) => string;
+    doneEmpty: string;
+    scanning: string;
+    nothing: string;
+  };
+  cleanTasks: Record<string, { title: string; desc: string }>;
   fps: {
     title: string;
     unit: string;
@@ -38,12 +55,41 @@ const PT: Dict = {
   chooseGame: "Escolha seu jogo",
   changeGame: "Trocar jogo",
   update: (v) => `Atualizar ${v}`,
-  tabs: { panel: "Painel", diag: "Diagnóstico", opt: "Otimizações", hist: "Histórico", about: "Sobre" },
+  tabs: { panel: "Painel", opt: "Otimizações", cleanup: "Limpeza", restore: "Restauração", apps: "Apps", settings: "Configurações" },
+  nav: { collapse: "Recolher", expand: "Expandir" },
+  soon: {
+    badge: "Em breve",
+    cleanupTitle: "Limpeza do sistema",
+    cleanupBody: "Em breve: remover arquivos temporários, cache e lixeira com segurança, do seu jeito.",
+    appsTitle: "Apps",
+    appsBody: "Em breve: gerenciar apps de inicialização e reduzir bloatware que pesa no boot.",
+  },
+  cfg: { language: "Idioma" },
+  clean: {
+    title: "Limpeza do Sistema",
+    subtitle: (when) => `Última limpeza: ${when}`,
+    never: "nenhuma ainda",
+    run: "Limpar Selecionados",
+    running: "Limpando…",
+    dangerous: "Perigoso",
+    selected: (n) => `${n} ${n === 1 ? "selecionado" : "selecionados"}`,
+    done: (freed) => `Limpeza concluída · ${freed} liberados`,
+    doneEmpty: "Limpeza concluída",
+    scanning: "Verificando…",
+    nothing: "Nada para limpar",
+  },
+  cleanTasks: {
+    "clean.temp": { title: "Limpar Arquivos Temporários", desc: "Remover arquivos temporários do sistema e do usuário." },
+    "clean.prefetch": { title: "Limpar Arquivos Prefetch", desc: "Excluir arquivos da pasta Prefetch do Windows." },
+    "clean.recycle_bin": { title: "Esvaziar Lixeira", desc: "Remover permanentemente arquivos da Lixeira." },
+    "clean.windows_update": { title: "Limpar Cache do Windows Update", desc: "Remover arquivos de instalação baixados do Windows Update." },
+    "clean.thumbnails": { title: "Limpar Cache de Miniaturas", desc: "Remover imagens em miniatura em cache usadas pelo Explorador de Arquivos." },
+  },
   fps: {
     title: "FPS estimado",
     unit: "FPS",
-    sub: (game) => `Estimativa em 1080p para ${game}, a partir do seu hardware.`,
-    note: "Estimativa aproximada. O resultado real varia com a resolução, os gráficos no jogo e os drivers.",
+    sub: (game) => `Faixa estimada em 1080p para ${game}, a partir do seu hardware.`,
+    note: "É uma estimativa específica deste jogo — cada jogo exige coisas diferentes da placa, então o número muda de um jogo para outro. O resultado real ainda varia com a resolução, os gráficos no jogo e os drivers.",
     gpuUnknown: "Não deu para identificar a placa de vídeo, então não dá para estimar o FPS.",
     tiers: {
       elite: "Competitivo, alto refresh",
@@ -102,12 +148,41 @@ const EN: Dict = {
   chooseGame: "Choose your game",
   changeGame: "Change game",
   update: (v) => `Update ${v}`,
-  tabs: { panel: "Dashboard", diag: "Diagnostics", opt: "Optimizations", hist: "History", about: "About" },
+  tabs: { panel: "Dashboard", opt: "Optimizations", cleanup: "Cleanup", restore: "Restore", apps: "Apps", settings: "Settings" },
+  nav: { collapse: "Collapse", expand: "Expand" },
+  soon: {
+    badge: "Coming soon",
+    cleanupTitle: "System cleanup",
+    cleanupBody: "Coming soon: safely remove temp files, caches and the recycle bin, your way.",
+    appsTitle: "Apps",
+    appsBody: "Coming soon: manage startup apps and trim bloatware that slows your boot.",
+  },
+  cfg: { language: "Language" },
+  clean: {
+    title: "System Cleanup",
+    subtitle: (when) => `Last cleanup: ${when}`,
+    never: "none yet",
+    run: "Clean Selected",
+    running: "Cleaning…",
+    dangerous: "Dangerous",
+    selected: (n) => `${n} selected`,
+    done: (freed) => `Cleanup done · ${freed} freed`,
+    doneEmpty: "Cleanup done",
+    scanning: "Checking…",
+    nothing: "Nothing to clean",
+  },
+  cleanTasks: {
+    "clean.temp": { title: "Clear Temporary Files", desc: "Remove system and user temporary files." },
+    "clean.prefetch": { title: "Clear Prefetch Files", desc: "Delete files from the Windows Prefetch folder." },
+    "clean.recycle_bin": { title: "Empty Recycle Bin", desc: "Permanently remove files from the Recycle Bin." },
+    "clean.windows_update": { title: "Clear Windows Update Cache", desc: "Remove installation files downloaded by Windows Update." },
+    "clean.thumbnails": { title: "Clear Thumbnail Cache", desc: "Remove cached thumbnail images used by File Explorer." },
+  },
   fps: {
     title: "Estimated FPS",
     unit: "FPS",
-    sub: (game) => `Estimate at 1080p for ${game}, based on your hardware.`,
-    note: "Rough estimate. Real results vary with resolution, in-game graphics and drivers.",
+    sub: (game) => `Estimated range at 1080p for ${game}, based on your hardware.`,
+    note: "This is an estimate for this specific game — each game asks different things of the GPU, so the number changes from one game to another. Real results still vary with resolution, in-game graphics and drivers.",
     gpuUnknown: "Could not identify the graphics card, so FPS can't be estimated.",
     tiers: {
       elite: "Competitive, high refresh",

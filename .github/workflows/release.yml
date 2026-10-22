@@ -4,6 +4,12 @@ name: Publicar versão
 # Segredos necessários no repositório:
 #   TAURI_SIGNING_PRIVATE_KEY           -> conteúdo do arquivo updater.key
 #   TAURI_SIGNING_PRIVATE_KEY_PASSWORD  -> senha da chave (vazio se gerada sem senha)
+# Segredo opcional (recomendado):
+#   VIRUSTOTAL_API_KEY                  -> chave da API do VirusTotal (plano
+#        gratuito serve). Com ela, o instalador é ENVIADO ao VirusTotal durante
+#        o release, então o link nas notas (gui/file/<sha256>) passa a existir.
+#        Sem a chave, esse link pode aparecer como "não encontrado" até que
+#        alguém envie o arquivo manualmente em virustotal.com.
 
 on:
   workflow_dispatch:
@@ -17,6 +23,8 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write
+    env:
+      VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -56,12 +64,37 @@ jobs:
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NOTES: ${{ github.event.inputs.notes }}
         run: |
           $ver = (Get-Content app/src-tauri/tauri.conf.json | ConvertFrom-Json).version
           $tag = "v$ver"
           $exe = Get-ChildItem -Recurse app/src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1
-          if ($exe) {
-            $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
-            $body = "${{ github.event.inputs.notes }}`n`n---`nSHA256 ($($exe.Name)): ``$hash```nVirusTotal: https://www.virustotal.com/gui/file/$hash"
-            gh release edit $tag --notes "$body"
+          if (-not $exe) { Write-Host "instalador não encontrado; nada a anexar"; exit 0 }
+
+          $hash = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
+          $vtUrl = "https://www.virustotal.com/gui/file/$hash"
+
+          # Envia o instalador ao VirusTotal para que a página do hash exista.
+          # Sem isso, um arquivo novo aparece como "não encontrado" no link.
+          if ($env:VIRUSTOTAL_API_KEY) {
+            try {
+              $headers = @{ "x-apikey" = $env:VIRUSTOTAL_API_KEY }
+              if ((Get-Item $exe.FullName).Length -lt 32MB) {
+                $endpoint = "https://www.virustotal.com/api/v3/files"
+              } else {
+                # Arquivos acima de 32 MB exigem uma URL de upload dedicada.
+                $endpoint = (Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/files/upload_url" -Headers $headers).data
+              }
+              Invoke-RestMethod -Uri $endpoint -Method Post -Headers $headers -Form @{ file = Get-Item $exe.FullName } | Out-Null
+              Write-Host "instalador enviado ao VirusTotal"
+              $vtLine = "VirusTotal: $vtUrl (a análise pode levar alguns minutos para aparecer)"
+            } catch {
+              Write-Host "falha ao enviar ao VirusTotal: $($_.Exception.Message)"
+              $vtLine = "VirusTotal: $vtUrl"
+            }
+          } else {
+            $vtLine = "VirusTotal: $vtUrl (se a página não existir, envie o instalador em virustotal.com)"
           }
+
+          $body = "$env:NOTES`n`n---`nSHA256 ($($exe.Name)): ``$hash```n$vtLine"
+          gh release edit $tag --notes "$body"

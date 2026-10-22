@@ -83,6 +83,25 @@ export interface SystemInfo {
   storage_free_gb: number | null;
 }
 
+export interface CleanResult {
+  id: string;
+  ok: boolean;
+  skipped: boolean;
+  freed_bytes: number;
+  message: string;
+}
+
+export interface CleanReport {
+  results: CleanResult[];
+  freed_bytes: number;
+}
+
+export interface CleanScan {
+  id: string;
+  bytes: number;
+  available: boolean;
+}
+
 export type Lang = "pt" | "en";
 
 export const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -251,6 +270,42 @@ export async function disableAll(gameId: string): Promise<BatchResult> {
 }
 export async function history(): Promise<Journal> {
   return isTauri ? call("history") : { entries: [...mockJournal] };
+}
+
+// Espaço "liberado" de exemplo por tarefa, só para o preview no navegador.
+const MOCK_CLEAN_FREED: Record<string, number> = {
+  "clean.temp": 912 * 1024 * 1024,
+  "clean.prefetch": 44 * 1024 * 1024,
+  "clean.recycle_bin": 0,
+  "clean.windows_update": 603 * 1024 * 1024,
+  "clean.thumbnails": 128 * 1024 * 1024,
+};
+
+export async function cleanupScan(): Promise<CleanScan[]> {
+  if (isTauri) return call("cleanup_scan");
+  await sleep(300);
+  // Preview: tudo com conteúdo, menos a Lixeira (vazia) — para demonstrar o
+  // item desabilitado "nada para limpar".
+  return [
+    { id: "clean.temp", bytes: MOCK_CLEAN_FREED["clean.temp"], available: true },
+    { id: "clean.prefetch", bytes: MOCK_CLEAN_FREED["clean.prefetch"], available: true },
+    { id: "clean.recycle_bin", bytes: 0, available: false },
+    { id: "clean.windows_update", bytes: MOCK_CLEAN_FREED["clean.windows_update"], available: true },
+    { id: "clean.thumbnails", bytes: MOCK_CLEAN_FREED["clean.thumbnails"], available: true },
+  ];
+}
+
+export async function cleanup(ids: string[]): Promise<CleanReport> {
+  if (isTauri) return call("cleanup", { ids });
+  await sleep(MOCK_DELAY);
+  const results: CleanResult[] = ids.map((id) => ({
+    id,
+    ok: true,
+    skipped: false,
+    freed_bytes: MOCK_CLEAN_FREED[id] ?? 0,
+    message: "ok",
+  }));
+  return { results, freed_bytes: results.reduce((s, r) => s + r.freed_bytes, 0) };
 }
 export async function isElevated(): Promise<boolean> {
   return isTauri ? call("is_elevated") : true;

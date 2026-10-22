@@ -77,7 +77,9 @@ const GAME_FACTOR: Record<string, number> = {
 export type FpsTier = "elite" | "high" | "smooth" | "playable" | "limited" | "low";
 
 export interface FpsEstimate {
-  fps: number | null; // null = sem GPU reconhecida
+  fps: number | null; // valor central; null = sem GPU reconhecida
+  low: number; // limite inferior da faixa estimada
+  high: number; // limite superior da faixa estimada
   tier: FpsTier;
 }
 
@@ -132,11 +134,17 @@ function tierOf(fps: number): FpsTier {
   return "low";
 }
 
+const round5 = (n: number) => Math.round(n / 5) * 5;
+
 export function estimateFps(sys: SystemInfo | null, gameId: string): FpsEstimate {
   const score = gpuScore(sys?.gpu);
-  if (score == null) return { fps: null, tier: "low" };
+  if (score == null) return { fps: null, low: 0, high: 0, tier: "low" };
   const factor = GAME_FACTOR[gameId] ?? 1.4;
   const raw = score * factor * ramFactor(sys?.ram_gb);
-  const fps = Math.max(10, Math.min(400, Math.round(raw / 5) * 5));
-  return { fps, tier: tierOf(fps) };
+  // Valor central e uma faixa de +/- ~12% em volta dele. A faixa deixa claro
+  // que e uma estimativa (nao um numero exato) e que varia com cada jogo.
+  const fps = Math.max(10, Math.min(400, round5(raw)));
+  const low = Math.max(10, round5(raw * 0.88));
+  const high = Math.min(400, round5(raw * 1.12));
+  return { fps, low, high, tier: tierOf(fps) };
 }

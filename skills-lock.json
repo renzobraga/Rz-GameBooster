@@ -7,6 +7,12 @@
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "89496d5dd00f4810205f351759594fc2742bf8eea85a2f2b2d1de59f4bd91576"
     },
+    "graphify": {
+      "source": "Graphify-Labs/graphify",
+      "sourceType": "github",
+      "skillPath": "graphify/skill.md",
+      "computedHash": "75ce4bddb9e118a9d72ded3e7f8281d670943dce853ac5886f2b99a2d8726e5b"
+    },
     "lead-magnets": {
       "source": "coreyhaines31/marketingskills",
       "sourceType": "github",
