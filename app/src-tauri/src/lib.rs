@@ -10,6 +10,19 @@ mod platform;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Admin obrigatório em release. O manifesto do Windows já pede UAC ao abrir,
+    // mas se o app subir sem elevação por qualquer motivo (manifesto removido,
+    // build fora do padrão, exe solto), reabrimos elevado e encerramos esta
+    // instância — sem admin as otimizações em HKLM falham. Em dev (debug)
+    // seguimos como o usuário, para não disparar UAC a cada `tauri dev`.
+    #[cfg(all(desktop, not(debug_assertions)))]
+    {
+        if !platform::is_elevated() {
+            let _ = platform::relaunch_as_admin();
+            return;
+        }
+    }
+
     let builder = tauri::Builder::default().plugin(tauri_plugin_opener::init());
 
     #[cfg(desktop)]

@@ -174,14 +174,22 @@ export default function App() {
         const res = await fn();
         await refreshDiag();
         await refreshTweaks(gameId);
-        if (isBatch(res) && res.needs_reboot) setRebootOpen(true);
+        if (isBatch(res)) {
+          // Falhas por tweak NÃO chegam no catch (o backend devolve ok:false
+          // dentro de results). Sem isso, o switch "voltava sozinho" calado.
+          const failed = res.results.filter((r) => !r.ok && !r.skipped);
+          if (failed.length > 0) {
+            pushToast("error", `${t.opt.applyFailed(failed.length)} (${failed[0].message})`);
+          }
+          if (res.needs_reboot) setRebootOpen(true);
+        }
       } catch (e) {
         pushToast("error", e instanceof Error ? e.message : String(e));
       } finally {
         setBusyKey(null);
       }
     },
-    [busyKey, gameId, refreshDiag, refreshTweaks, pushToast]
+    [busyKey, gameId, refreshDiag, refreshTweaks, pushToast, t]
   );
 
   const rescan = () => run("diag", async () => {});
@@ -189,8 +197,6 @@ export default function App() {
   const applyOne = (id: string) => run(`apply:${id}`, () => applyTweaks(gameId, [id]));
   const disableOne = (id: string) => run(`disable:${id}`, () => disableTweaks(gameId, [id]));
   const disableAllNow = () => run("disableAll", () => disableAll(gameId));
-  const applyRecommended = () =>
-    run("recommended", () => applyTweaks(gameId, visibleTweaks.filter((tw) => tw.recommended && tw.supported && tw.state !== "applied").map((tw) => tw.id)));
 
   // Limpeza: ação única (não é toggle), com toast do espaço liberado.
   const doCleanup = useCallback(
@@ -378,7 +384,7 @@ export default function App() {
               )}
             </div>
           )}
-          {tab === "otimizacoes" && <Otimizacoes tweaks={visibleTweaks} busy={busy} busyKey={busyKey} onApply={applyOne} onDisable={disableOne} onRecommended={applyRecommended} />}
+          {tab === "otimizacoes" && <Otimizacoes tweaks={visibleTweaks} busy={busy} busyKey={busyKey} onApply={applyOne} onDisable={disableOne} />}
           {tab === "limpeza" && <Limpeza busy={busy} busyKey={busyKey} lastClean={lastClean} onClean={doCleanup} />}
           {tab === "restauracao" && <Historico journal={journal} tweaks={tweaks} busy={busy} busyKey={busyKey} onDisable={disableOne} onDisableAll={disableAllNow} />}
           {tab === "apps" && <Apps busy={busy} busyKey={busyKey} onToggle={onToggleStartup} />}
@@ -793,29 +799,18 @@ function Otimizacoes({
   busyKey,
   onApply,
   onDisable,
-  onRecommended,
 }: {
   tweaks: TweakView[];
   busy: boolean;
   busyKey: string | null;
   onApply: (id: string) => void;
   onDisable: (id: string) => void;
-  onRecommended: () => void;
 }) {
   const { t } = useT();
-  const recommending = busyKey === "recommended";
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4">
         <p className="text-sm text-muted">{t.opt.count(tweaks.length)}</p>
-        <button
-          onClick={onRecommended}
-          disabled={busy}
-          className="inline-flex items-center gap-1.5 rounded-md bg-action px-4 py-2 text-sm font-medium text-bg hover:opacity-90 disabled:opacity-50"
-        >
-          {recommending && <Loader2 size={14} className="animate-spin" />}
-          {recommending ? t.opt.applying : t.opt.applyRec}
-        </button>
       </div>
       <ul className="flex flex-col gap-2">
         {tweaks.map((tw) => {
